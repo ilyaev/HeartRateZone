@@ -25,6 +25,9 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.pbartz.heartmonitor.service.BluetoothLeService;
+import com.pbartz.heartmonitor.service.RandomService;
+
 import java.util.ArrayList;
 import java.util.logging.Handler;
 

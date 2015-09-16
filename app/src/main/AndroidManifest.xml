@@ -18,13 +18,13 @@
         </activity>
 
         <service
-            android:name=".BluetoothLeService"
+            android:name=".service.BluetoothLeService"
             android:exported="false" />
         <service
-            android:name=".RandomService"
+            android:name=".service.RandomService"
             android:exported="false" />
         <service
-            android:name=".PlayAudioService"
+            android:name=".service.PlayAudioService"
             android:exported="false" />
 
         <activity
