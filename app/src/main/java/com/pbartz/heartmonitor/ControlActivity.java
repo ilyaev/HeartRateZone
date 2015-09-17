@@ -5,13 +5,16 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 
 import com.pbartz.heartmonitor.view.Button;
+import com.pbartz.heartmonitor.view.ZoneProgress;
 
 public class ControlActivity extends AppCompatActivity {
 
     View viewGauge;
-    View viewProgress;
+    ZoneProgress viewProgress;
     View viewChart;
 
     android.widget.ImageButton btnPlay;
@@ -21,6 +24,7 @@ public class ControlActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_control);
 
         initView();
@@ -30,7 +34,7 @@ public class ControlActivity extends AppCompatActivity {
     private void initView() {
 
         viewGauge = findViewById(R.id.viewGauge);
-        viewProgress = findViewById(R.id.viewProgress);
+        viewProgress = (ZoneProgress) findViewById(R.id.viewProgress);
         viewChart = findViewById(R.id.viewChart);
 
         btnPlay = (android.widget.ImageButton) findViewById(R.id.btnPlay);
@@ -40,22 +44,22 @@ public class ControlActivity extends AppCompatActivity {
         btnPlay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                viewGauge.setVisibility(viewGauge.getVisibility() == View.INVISIBLE ? View.VISIBLE : View.INVISIBLE);
+
             }
         });
 
         btnSettings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                viewProgress.setVisibility(viewProgress.getVisibility() == View.VISIBLE ? View.INVISIBLE : View.VISIBLE);
+
             }
         });
 
         btnAudio.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                viewChart.setVisibility(viewChart.getVisibility() == View.VISIBLE ? View.INVISIBLE : View.VISIBLE);
                 btnAudio.setImageResource(viewChart.getVisibility() == View.VISIBLE ? R.drawable.audio_on_white : R.drawable.audio_off_white);
+                viewProgress.updateHrValue((int)(Math.round(Math.random() * viewProgress.getHeight())));
             }
         });
 
