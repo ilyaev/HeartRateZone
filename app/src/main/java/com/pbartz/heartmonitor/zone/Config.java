@@ -15,12 +15,55 @@ public class Config {
     public static void init(int hrMax) {
         Config.hrMax = hrMax;
 
-        zoneMap = new ArrayList<>(5);
+        if (zoneMap == null) {
+            zoneMap = new ArrayList<>(5);
+        } else {
+            zoneMap.clear();
+        }
+
+        int[] perMap = {58,77,87,96,110};
+
+
+
         for(int i = 0 ; i < 5 ; i++) {
-            Item item = new Item(10, 100, "Z" + (i + 1));
+
+            int leftBorder = 0;
+            int rightBorder = perMap[i];
+
+            if (i == 0) {
+                leftBorder = 0;
+            } else {
+                leftBorder = perMap[i - 1];
+            }
+
+            Item item = new Item(leftBorder, rightBorder, hrMax, "Z" + (i + 1));
             zoneMap.add(i, item);
         }
 
+    }
+
+    public static float hrValueToScreenHeight(int hrValue, float scrHeight) {
+        float res = 0;
+
+        for(int i = 0 ; i < 5 ; i++) {
+            Item item = zoneMap.get(i);
+
+            if (hrValue >= item.hrValueFrom && hrValue <= item.hrValueTo) {
+
+                float zDiff = item.hrValueTo - item.hrValueFrom;
+                float vDiff = hrValue - item.hrValueFrom;
+                float perc = vDiff / (zDiff / 100);
+
+                float zoneHeight = scrHeight / 5;
+
+                res = i * zoneHeight + ((zoneHeight / 100) * perc);
+
+                break;
+            }
+
+        }
+
+        return res;
     }
 
 }

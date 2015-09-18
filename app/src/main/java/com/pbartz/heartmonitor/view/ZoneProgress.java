@@ -26,6 +26,7 @@ public class ZoneProgress extends View {
     Paint textPaint;
 
     float zoneHeight;
+    int hrValue = 0;
     int hrCurrent;
 
     @Override
@@ -61,10 +62,8 @@ public class ZoneProgress extends View {
 
         a.recycle();
 
-        hrCurrent = 60;
+        hrCurrent = 0;
 
-        // Update TextPaint and text measurements from attributes
-        invalidateTextPaintAndMeasurements();
     }
 
     private void initZoneConfig() {
@@ -77,10 +76,6 @@ public class ZoneProgress extends View {
         textPaint = new Paint();
         textPaint.setARGB(255, 0, 0, 0);
         textPaint.setAntiAlias(true);
-
-    }
-
-    private void invalidateTextPaintAndMeasurements() {
 
     }
 
@@ -101,12 +96,15 @@ public class ZoneProgress extends View {
     }
 
     public void updateHrValue(int hrValue) {
-        ObjectAnimator mAnimatorX = ObjectAnimator.ofInt(ZoneProgress.this, "hrCurrent", hrCurrent);
-        mAnimatorX.setIntValues(hrValue);
-        mAnimatorX.setDuration(300);
-        mAnimatorX.start();
-        //mAnimatorX.setInterpolator(new AccelerateInterpolator());
-        mAnimatorX.setInterpolator(new BounceInterpolator());
+
+        int newHrCurrent = (int)Config.hrValueToScreenHeight(hrValue, getHeight());
+        this.hrValue = hrValue;
+
+        ObjectAnimator hrAnimation = ObjectAnimator.ofInt(ZoneProgress.this, "hrCurrent", hrCurrent);
+        hrAnimation.setIntValues(newHrCurrent);
+        hrAnimation.setDuration(300);
+        hrAnimation.start();
+        hrAnimation.setInterpolator(new BounceInterpolator());
     }
 
     @Override
@@ -114,6 +112,7 @@ public class ZoneProgress extends View {
         super.onDraw(canvas);
 
         for (int zone = 0 ; zone < 5 ; zone ++) {
+
             canvas.drawText(Config.zoneMap.get(zone).label, 0, getHeight() - ((zoneHeight / 2 - zoneHeight / 4) + zone * zoneHeight), textPaint);
             canvas.drawLine(0, getHeight() - zone * zoneHeight - 2, getWidth(), getHeight() - zone * zoneHeight - 2, textPaint);
         }

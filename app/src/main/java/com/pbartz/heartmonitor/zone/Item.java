@@ -5,14 +5,28 @@ package com.pbartz.heartmonitor.zone;
  */
 public class Item extends Object{
 
-    public int hrFrom;
-    public int hrTo;
+    public float hrFrom;
+    public float hrTo;
+    public float hrMax;
+
+    public float hrValueFrom = 0;
+    public float hrValueTo = 0;
 
     public String label;
 
-    public Item(int hrFrom, int hrTo, String label) {
+    public Item(float hrFrom, float hrTo, float hrMax, String label) {
         this.hrFrom = hrFrom;
         this.hrTo = hrTo;
+        this.hrMax = hrMax;
         this.label = label;
+
+        if (hrFrom > 0) {
+            this.hrValueFrom = ((float)hrMax / 100f) * hrFrom;
+        }
+
+        if (hrTo > 0) {
+            this.hrValueTo = ((float)hrMax / 100f) * hrTo;
+        }
+
     }
 }

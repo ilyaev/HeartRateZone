@@ -1,5 +1,6 @@
 package com.pbartz.heartmonitor.service;
 
+import android.app.Activity;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -72,9 +73,11 @@ public class RandomService extends Service {
 
                     if (isRunning) {
 
-                        mCurrentValue = mCurrentValue + (int) (Math.round(Math.random() * 10) - 5);
+                        mCurrentValue = mCurrentValue + (int) (Math.round(Math.random() * 20) - 10);
                         if (mCurrentValue < 60) {
                             mCurrentValue += Math.round(Math.random() * 10);
+                        } else if (mCurrentValue > 195) {
+                            mCurrentValue -= Math.round(Math.random() * 10);
                         }
 
                         broadcastUpdate(ACTION_DATA_AVAILABLE, mCurrentValue);
@@ -135,7 +138,7 @@ public class RandomService extends Service {
         return true;
     }
 
-    public boolean connect(final String address, MainActivity mainActivity) {
+    public boolean connect(final String address, Activity mainActivity) {
 
         mConnectionState = STATE_CONNECTED;
 

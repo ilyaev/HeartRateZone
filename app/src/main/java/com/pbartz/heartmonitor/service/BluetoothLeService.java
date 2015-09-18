@@ -1,5 +1,6 @@
 package com.pbartz.heartmonitor.service;
 
+import android.app.Activity;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -249,7 +250,7 @@ public class BluetoothLeService extends Service {
      *         callback.
      */
 
-    public boolean connect(final String address, MainActivity mainActivity) {
+    public boolean connect(final String address, Activity mainActivity) {
 
         isRunning = false;
         isStarted = true;

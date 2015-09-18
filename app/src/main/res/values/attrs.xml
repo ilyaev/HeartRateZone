@@ -12,4 +12,8 @@
         <attr name="exampleDrawable" format="color|reference" />
     </declare-styleable>
 
+    <declare-styleable name="ZoneGauge">
+
+    </declare-styleable>
+
 </resources>
