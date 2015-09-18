@@ -424,6 +424,7 @@ public class ControlActivity extends AppCompatActivity {
     private void saveDevice(BluetoothDevice device) {
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
         SharedPreferences.Editor editor = settings.edit();
+        //todo
 
         editor.putString("deviceAddress", device.getAddress());
         editor.putString("deviceName", device.getName());
