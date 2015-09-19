@@ -73,7 +73,7 @@ public class RandomService extends Service {
 
                     if (isRunning) {
 
-                        mCurrentValue = mCurrentValue + (int) (Math.round(Math.random() * 20) - 10);
+                        mCurrentValue = mCurrentValue + (int) (Math.round(Math.random() * 40) - 20);
                         if (mCurrentValue < 60) {
                             mCurrentValue += Math.round(Math.random() * 10);
                         } else if (mCurrentValue > 195) {

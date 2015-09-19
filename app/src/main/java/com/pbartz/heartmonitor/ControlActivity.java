@@ -45,7 +45,7 @@ public class ControlActivity extends AppCompatActivity {
 
     private String mDeviceAddress = null;
 
-    private int mAppMode = APPLICATION_MODE_PRODUCTION;
+    private int mAppMode = APPLICATION_MODE_RANDOM;
 
     private BluetoothLeService mBluetoothLeService;
     private BluetoothAdapter mBluetoothAdapter;
@@ -163,7 +163,7 @@ public class ControlActivity extends AppCompatActivity {
         public void onClick(View v) {
 
            btnAudio.setImageResource(viewChart.getVisibility() == View.VISIBLE ? R.drawable.audio_on_white : R.drawable.audio_off_white);
-
+           viewGauge.focusZone(2);
         }
     };
 

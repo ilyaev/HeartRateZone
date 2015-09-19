@@ -1,5 +1,7 @@
 package com.pbartz.heartmonitor.zone;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -66,4 +68,18 @@ public class Config {
         return res;
     }
 
+    public static int getZoneByHr(int hr) {
+        int res = 0;
+        for(int i = 0 ; i < 5 ; i++) {
+
+            Item item = zoneMap.get(i);
+            Log.i("TEG", "" + item.hrValueFrom + " / " + item.hrValueTo);
+
+            if (hr >= zoneMap.get(i).hrValueFrom && hr <= zoneMap.get(i).hrValueTo) {
+                res = i;
+            }
+        }
+        return res;
+
+    }
 }
