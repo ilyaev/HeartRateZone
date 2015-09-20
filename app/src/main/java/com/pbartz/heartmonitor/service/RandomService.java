@@ -15,6 +15,7 @@ import android.util.Log;
 
 import com.pbartz.heartmonitor.MainActivity;
 import com.pbartz.heartmonitor.R;
+import com.pbartz.heartmonitor.zone.Chart;
 
 /**
  * Created by yura.ilyaev on 9/11/2015.
@@ -41,6 +42,8 @@ public class RandomService extends Service {
     public final static String ACTION_DATA_AVAILABLE = "pbartz.hrm.ACTION_GATT_DATA_AVAILABLE";
     public final static String EXTRA_DATA = "pbartz.hrm.EXTRA_DATA";
 
+    public static Chart dataSet;
+
     private int mCurrentValue = 60;
 
     int mId = 1;
@@ -48,6 +51,7 @@ public class RandomService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        dataSet = new Chart();
         Log.i(TAG, "SERVICE CREATED!!!");
     }
 
@@ -81,6 +85,7 @@ public class RandomService extends Service {
                         }
 
                         broadcastUpdate(ACTION_DATA_AVAILABLE, mCurrentValue);
+                        dataSet.push(mCurrentValue);
 
                         updateNotifier("" + mCurrentValue);
                         //playSound();
@@ -204,6 +209,10 @@ public class RandomService extends Service {
         }
        return;
 
+    }
+
+    public Chart getDataSet() {
+        return dataSet;
     }
 
 }

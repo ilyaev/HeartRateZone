@@ -25,6 +25,9 @@ public class ZoneProgress extends View {
     Paint defPaint;
     Paint textPaint;
 
+    Paint onePaint;
+    Paint twoPaint;
+
     float zoneHeight;
     int hrValue = 0;
     int hrCurrent;
@@ -74,19 +77,30 @@ public class ZoneProgress extends View {
         defPaint.setStrokeWidth(20);
 
         textPaint = new Paint();
-        textPaint.setARGB(255, 0, 0, 0);
+        textPaint.setARGB(255, 100, 100, 100);
         textPaint.setAntiAlias(true);
+
+        onePaint = new Paint();
+        onePaint.setARGB(255, 230, 230, 230);
+        onePaint.setStyle(Paint.Style.FILL);
+
+        twoPaint = new Paint();
+        twoPaint.setStyle(Paint.Style.FILL);
+        twoPaint.setARGB(255, 230, 230, 230);
 
     }
 
     public void setHrCurrent(int hrCurrent) {
         this.hrCurrent = hrCurrent;
 
-        if (hrCurrent > getHeight() / 2) {
-            defPaint.setARGB(125, 255, 0, 0);
-        } else {
-            defPaint.setARGB(125, 0, 255, 0);
-        }
+//        if (hrCurrent > getHeight() / 2) {
+//            defPaint.setARGB(125, 255, 0, 0);
+//        } else {
+//            defPaint.setARGB(125, 0, 255, 0);
+//        }
+
+        defPaint.set(Config.getPaintByZone(Config.getZoneByHr(hrValue)));
+        defPaint.setAlpha(125);
 
         invalidate();
     }
@@ -111,13 +125,43 @@ public class ZoneProgress extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
+        float colOneWidth = getWidth() * 0.2f;
+        float textHeight = zoneHeight / 3f;
+        textPaint.setTextSize(textHeight);
+
+        float bottom = textPaint.getFontMetrics().bottom;
+
         for (int zone = 0 ; zone < 5 ; zone ++) {
 
-            canvas.drawText(Config.zoneMap.get(zone).label, 0, getHeight() - ((zoneHeight / 2 - zoneHeight / 4) + zone * zoneHeight), textPaint);
+            textPaint.setARGB(255, 100, 100, 100);
+
+            float centerX = colOneWidth / 2f;
+            float centerY = getHeight() - (zone * zoneHeight) - zoneHeight / 2f;
+
+            canvas.drawRect(0, getHeight() - (zone + 1) * zoneHeight + zoneHeight * 0.05f, colOneWidth, getHeight() - zone * zoneHeight - zoneHeight * 0.05f, Config.getPaintByZone(zone));
+
+            canvas.drawRect(colOneWidth + zoneHeight * 0.05f, getHeight() - (zone + 1) * zoneHeight + zoneHeight * 0.05f, getWidth(), getHeight() - zone * zoneHeight - zoneHeight * 0.05f, twoPaint);
+
+
+            float textWidth = textPaint.measureText(Config.zoneMap.get(zone).label);
+
             canvas.drawLine(0, getHeight() - zone * zoneHeight - 2, getWidth(), getHeight() - zone * zoneHeight - 2, textPaint);
+
+            if (zone == 4) {
+                textPaint.setARGB(255, 240, 240, 240);
+            } else if (zone == 3) {
+                textPaint.setARGB(255, 220, 220, 220);
+            }
+
+            canvas.drawText(Config.zoneMap.get(zone).label, centerX - textWidth / 2f, centerY + textHeight / 2f - bottom / 2f, textPaint);
+
+
+
+
+
         }
 
-        canvas.drawRect(0, getHeight() - hrCurrent, getWidth(), getHeight(), defPaint);
+       canvas.drawRect(0, getHeight() - hrCurrent, getWidth(), getHeight(), defPaint);
 
 
 

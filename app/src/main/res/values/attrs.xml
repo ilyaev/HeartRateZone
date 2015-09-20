@@ -16,4 +16,8 @@
 
     </declare-styleable>
 
+    <declare-styleable name="ZoneChart">
+
+    </declare-styleable>
+
 </resources>

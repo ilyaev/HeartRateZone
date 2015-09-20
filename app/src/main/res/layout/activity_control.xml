@@ -16,14 +16,14 @@
         android:layout_alignParentTop="true"
         android:visibility="invisible">
 
-        <com.pbartz.heartmonitor.view.Button
+        <com.pbartz.heartmonitor.view.ZoneChart
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/viewChart"
-            android:visibility="invisible"
+            android:visibility="visible"
             android:layout_weight="1"
             android:layout_below="@+id/viewProgress"
-            android:layout_marginBottom="45dp" />
+            android:layout_marginBottom="79dp" />
 
         <com.pbartz.heartmonitor.view.ZoneProgress
             android:layout_width="wrap_content"

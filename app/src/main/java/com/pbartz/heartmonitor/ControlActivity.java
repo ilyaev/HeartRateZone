@@ -28,8 +28,10 @@ import android.widget.Toast;
 import com.pbartz.heartmonitor.service.BluetoothLeService;
 import com.pbartz.heartmonitor.service.RandomService;
 import com.pbartz.heartmonitor.view.Button;
+import com.pbartz.heartmonitor.view.ZoneChart;
 import com.pbartz.heartmonitor.view.ZoneGauge;
 import com.pbartz.heartmonitor.view.ZoneProgress;
+import com.pbartz.heartmonitor.zone.Chart;
 import com.pbartz.heartmonitor.zone.Config;
 
 public class ControlActivity extends AppCompatActivity {
@@ -60,11 +62,13 @@ public class ControlActivity extends AppCompatActivity {
     public static final int MODE_CONNECTING = 1;
     public static final int MODE_CONNECTED = 2;
 
+    private Chart.HrDataSet dataSet = null;
+
     public int state = MODE_DISCONNECTED;
 
     ZoneGauge viewGauge;
     ZoneProgress viewProgress;
-    View viewChart;
+    ZoneChart viewChart;
 
     RelativeLayout layoutOff;
     RelativeLayout layoutOn;
@@ -82,6 +86,7 @@ public class ControlActivity extends AppCompatActivity {
         setContentView(R.layout.activity_control);
 
         initView();
+
         Config.init(185);
 
         if (mAppMode == APPLICATION_MODE_PRODUCTION) {
@@ -102,7 +107,10 @@ public class ControlActivity extends AppCompatActivity {
 
         viewGauge = (ZoneGauge) findViewById(R.id.viewGauge);
         viewProgress = (ZoneProgress) findViewById(R.id.viewProgress);
-        viewChart = findViewById(R.id.viewChart);
+        viewChart = (ZoneChart) findViewById(R.id.viewChart);
+
+        viewChart.setParentActivity(this);
+        viewGauge.setParentActivity(this);
 
         btnPlay = (android.widget.ImageButton) findViewById(R.id.btnPlay);
         btnSettings = (android.widget.ImageButton) findViewById(R.id.btnSettings);
@@ -249,6 +257,10 @@ public class ControlActivity extends AppCompatActivity {
         }
     }
 
+    public Chart.HrDataSet getDataSet() {
+        return dataSet;
+    }
+
     private void initRandomAdaptor() {
 
     }
@@ -279,6 +291,9 @@ public class ControlActivity extends AppCompatActivity {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             mRandomService = ((RandomService.LocalBinder) service).getService();
+
+            dataSet = RandomService.dataSet.dataSet;
+
             if (mRandomService.isRunning) {
                 setActivityState(MODE_CONNECTED);
                 //switchConnection.setChecked(true);
@@ -329,6 +344,7 @@ public class ControlActivity extends AppCompatActivity {
                 Log.i(TAG, "HRMrandom: " + intent.getStringExtra(RandomService.EXTRA_DATA));
                 viewProgress.updateHrValue(Integer.valueOf(intent.getStringExtra(RandomService.EXTRA_DATA)));
                 viewGauge.updateHrValue(Integer.valueOf(intent.getStringExtra(RandomService.EXTRA_DATA)));
+                viewChart.invalidate();
                 //labelValue.setText(intent.getStringExtra(RandomService.EXTRA_DATA));
                 //ToDo
             }
