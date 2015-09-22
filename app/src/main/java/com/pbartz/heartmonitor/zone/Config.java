@@ -84,7 +84,7 @@ public class Config {
         for(int i = 0 ; i < 5 ; i++) {
             Item item = zoneMap.get(i);
 
-            if (hrValue >= item.hrValueFrom && hrValue <= item.hrValueTo) {
+            if ((hrValue >= item.hrValueFrom && hrValue <= item.hrValueTo) || i == 4) {
 
                 float zDiff = item.hrValueTo - item.hrValueFrom;
                 float vDiff = hrValue - item.hrValueFrom;

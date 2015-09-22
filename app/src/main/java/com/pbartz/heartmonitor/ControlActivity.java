@@ -67,7 +67,7 @@ public class ControlActivity extends AppCompatActivity {
     public int state = MODE_DISCONNECTED;
 
     ZoneGauge viewGauge;
-    ZoneProgress viewProgress;
+    public ZoneProgress viewProgress;
     ZoneChart viewChart;
 
     RelativeLayout layoutOff;
@@ -178,6 +178,7 @@ public class ControlActivity extends AppCompatActivity {
     private View.OnClickListener onSettingsBtnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+
 
         }
     };

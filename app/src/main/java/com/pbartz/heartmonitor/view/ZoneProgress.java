@@ -6,6 +6,7 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.drawable.Drawable;
 import android.text.TextPaint;
 import android.util.AttributeSet;
@@ -125,7 +126,7 @@ public class ZoneProgress extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        float colOneWidth = getWidth() * 0.2f;
+        float colOneWidth = getColOneWidth();
         float textHeight = zoneHeight / 3f;
         textPaint.setTextSize(textHeight);
 
@@ -161,9 +162,25 @@ public class ZoneProgress extends View {
 
         }
 
-       canvas.drawRect(0, getHeight() - hrCurrent, getWidth(), getHeight(), defPaint);
+       canvas.drawRect(colOneWidth + zoneHeight * 0.05f, ((getHeight() - hrCurrent) > 0 ? getHeight() - hrCurrent : 0), getWidth(), getHeight(), defPaint);
 
 
 
+    }
+
+    private float getColOneWidth() {
+        return getWidth() * 0.2f;
+    }
+
+    public float getColTwoWidth() {
+        return getWidth() < getHeight() ? getWidth() - getColOneWidth() : getHeight();
+    }
+
+    public Point getGaugeCenter() {
+        Point res = new Point();
+
+        res.set( (int)((getWidth() - getColOneWidth()) / 2f + getColOneWidth()), (int)(getHeight() / 2f));
+
+        return res;
     }
 }

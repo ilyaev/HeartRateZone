@@ -18,18 +18,19 @@
 
         <com.pbartz.heartmonitor.view.ZoneChart
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="110dp"
             android:id="@+id/viewChart"
             android:visibility="visible"
             android:layout_weight="1"
-            android:layout_below="@+id/viewProgress"
-            android:layout_marginBottom="79dp" />
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="55dp" />
 
         <com.pbartz.heartmonitor.view.ZoneProgress
             android:layout_width="wrap_content"
-            android:layout_height="350dp"
+            android:layout_height="wrap_content"
             android:id="@+id/viewProgress"
-            android:layout_gravity="center_horizontal"/>
+            android:layout_gravity="center_horizontal"
+            android:layout_above="@+id/viewChart" />
 
         <com.pbartz.heartmonitor.view.ZoneGauge
             android:layout_width="wrap_content"
@@ -107,26 +108,26 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/bottomButtons"
-                android:layout_weight="0.02">
+                android:layout_marginBottom="-10dp">
 
                 <ImageButton
                     android:layout_width="0dp"
-                    android:layout_height="65dp"
+                    android:layout_height="50dp"
                     android:src="@drawable/settings_white"
                     android:id="@+id/btnSettings"
                     android:scaleType="fitCenter"
-                    android:background="#ff6951"
+                    android:background="#ff5200"
                     android:layout_gravity="center_vertical"
                     android:layout_weight="1" />
 
                 <ImageButton
                     android:layout_width="0dp"
-                    android:layout_height="90dp"
+                    android:layout_height="70dp"
                     android:text="Start"
                     android:id="@+id/btnPlay"
                     android:layout_gravity="center_vertical"
                     android:layout_weight="1"
-                    android:background="#ff6951"
+                    android:background="#ff5200"
                     android:src="@drawable/play_white"
                     android:scaleType="fitCenter"
                     android:layout_marginLeft="10dp"
@@ -134,8 +135,8 @@
 
                 <ImageButton
                     android:layout_width="0dp"
-                    android:layout_height="65dp"
-                    android:background="#ff6951"
+                    android:layout_height="50dp"
+                    android:background="#ff5200"
                     android:src="@drawable/audio_on_white"
                     android:id="@+id/btnAudio"
                     android:scaleType="fitCenter"

@@ -13,6 +13,7 @@ import android.graphics.drawable.Drawable;
 import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.BounceInterpolator;
 
@@ -181,12 +182,12 @@ public class ZoneGauge extends View {
         a.recycle();
 
         labelHR = new CustomLabel("61", 0, 0);
-        labelHR.paint.setColor(Color.argb(255, 100, 100, 100));
+        labelHR.paint.setColor(Color.argb(255, 0, 0, 0));
 
         labelTitle = new CustomLabel("HEART RATE, BPM", 0, 0);
         labelTitle.paint.setColor(Color.argb(255, 150, 150, 150));
         labelLevel = new CustomLabel("ENDURANCE", 0, 0);
-        labelLevel.paint.setColor(Color.argb(255, 150, 150, 150));
+        labelLevel.paint.setColor(Color.argb(255, 255, 0, 0));
 
         mCirclePaint = new Paint();
         mCirclePaint.setStyle(Paint.Style.FILL);
@@ -208,24 +209,37 @@ public class ZoneGauge extends View {
             pCenter = new Point();
         }
 
-        if (zones == null) {
-
+        if (parentActivity != null) {
+            mRadius = parentActivity.viewProgress.getColTwoWidth() * 0.8f / 2f;
+        } else {
             mRadius = getWidth() / 3f;
+        }
 
-            labelHR.setSize((int) (mRadius / 2f));
-            labelTitle.setSize(labelHR.size / 5f);
-            labelLevel.setSize(labelHR.size / 4f);
+        labelHR.setSize((int) (mRadius / 1.5f));
+        labelTitle.setSize(labelHR.size / 6f);
+        labelLevel.setSize(labelHR.size / 5f);
+
+
+        if (parentActivity != null) {
+
+            pCenter.set(parentActivity.viewProgress.getGaugeCenter().x, parentActivity.viewProgress.getGaugeCenter().y);
+
+        } else {
 
             pCenter.set(getWidth() / 2, (int) (mRadius + mRadius / 5f));
 
-            labelHR.x = pCenter.x;
-            labelHR.y = pCenter.y;
+        }
 
-            labelTitle.x = pCenter.x;
-            labelTitle.y = pCenter.y - labelHR.size / 2 - labelTitle.size * 0.7f;
+        labelHR.x = pCenter.x;
+        labelHR.y = pCenter.y;
 
-            labelLevel.x = pCenter.x;
-            labelLevel.y = pCenter.y + labelHR.size / 2 + labelLevel.size * 1.2f;
+        labelTitle.x = pCenter.x;
+        labelTitle.y = pCenter.y - labelHR.size / 2 - labelTitle.size * 0.7f;
+
+        labelLevel.x = pCenter.x;
+        labelLevel.y = pCenter.y + labelHR.size / 2 + labelLevel.size * 1.2f;
+
+        if (zones == null) {
 
             zones = new ArrayList<>(5);
 
@@ -327,4 +341,40 @@ public class ZoneGauge extends View {
 
     }
 
+    public void setCenterX(float cX) {
+        pCenter.x = (int)cX;
+        updateHrValue(hrValue);
+        labelHR.x = pCenter.x;
+        labelHR.y = pCenter.y;
+
+        labelTitle.x = pCenter.x;
+        labelTitle.y = pCenter.y - labelHR.size / 2 - labelTitle.size * 0.7f;
+
+        labelLevel.x = pCenter.x;
+        labelLevel.y = pCenter.y + labelHR.size / 2 + labelLevel.size * 1.2f;
+
+        invalidate();
+    }
+
+    public float getCenterX() {
+        return pCenter.x;
+    }
+
+    public void setCenterY(float cY) {
+        pCenter.y = (int) cY;
+        updateHrValue(hrValue);
+        labelHR.x = pCenter.x;
+        labelHR.y = pCenter.y;
+
+        labelTitle.x = pCenter.x;
+        labelTitle.y = pCenter.y - labelHR.size / 2 - labelTitle.size * 0.7f;
+
+        labelLevel.x = pCenter.x;
+        labelLevel.y = pCenter.y + labelHR.size / 2 + labelLevel.size * 1.2f;
+        invalidate();
+    }
+
+    public float getCenterY() {
+        return pCenter.y;
+    }
 }
