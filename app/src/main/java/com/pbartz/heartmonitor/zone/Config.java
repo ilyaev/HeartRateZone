@@ -62,7 +62,7 @@ public class Config {
                 leftBorder = perMap[i - 1];
             }
 
-            Item item = new Item(leftBorder, rightBorder, hrMax, "Z" + (i + 1));
+            Item item = new Item(leftBorder, rightBorder, hrMax, "z" + (i + 1));
             zoneMap.add(i, item);
         }
 

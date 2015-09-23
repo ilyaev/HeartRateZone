@@ -29,9 +29,12 @@ public class Chart {
         public ArrayList<HrPoint> data;
 
         public int[] zoneCount = {0, 0, 0, 0, 0};
+        public long[] zoneSecs = {0, 0, 0, 0, 0};
 
         public int thresholdTop = 300;
         public int listSize = 200;
+
+        private long timeStamp = -1;
 
         public HrDataSet() {
             data = new ArrayList<HrPoint>();
@@ -40,7 +43,17 @@ public class Chart {
         public void pushPoint(int hrValue) {
             HrPoint point = new HrPoint(hrValue, Config.getZoneByHr(hrValue));
             data.add(point);
+
+            long secs = 0;
+            if (timeStamp > 0) {
+                secs = System.currentTimeMillis() - timeStamp;
+                Log.i("TAG", "Secs " + secs + " in zone: " + point.zone);
+            }
+
+            timeStamp = System.currentTimeMillis();
+
             zoneCount[point.zone] += 1;
+            zoneSecs[point.zone] += secs;
 
             if (data.size() > thresholdTop) {
                 ArrayList<HrPoint> subList = new ArrayList<HrPoint>();

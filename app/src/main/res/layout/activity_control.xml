@@ -77,6 +77,7 @@
             android:layout_alignParentBottom="true"
             android:layout_marginBottom="120dp"
             android:textSize="22dp" />
+
     </RelativeLayout>
 
     <RelativeLayout
@@ -86,6 +87,15 @@
         android:layout_centerHorizontal="true"
         android:id="@+id/layoutButtons"
         android:visibility="visible">
+
+        <com.pbartz.heartmonitor.view.Transition
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/viewTransition"
+            android:layout_gravity="right"
+            android:layout_weight="0.98"
+            android:visibility="invisible"
+            android:layout_alignParentEnd="true" />
 
         <LinearLayout
             android:orientation="vertical"
@@ -118,7 +128,8 @@
                     android:scaleType="fitCenter"
                     android:background="#ff5200"
                     android:layout_gravity="center_vertical"
-                    android:layout_weight="1" />
+                    android:layout_weight="1"
+                    android:layout_marginLeft="2dp" />
 
                 <ImageButton
                     android:layout_width="0dp"
@@ -141,11 +152,14 @@
                     android:id="@+id/btnAudio"
                     android:scaleType="fitCenter"
                     android:layout_gravity="center_vertical"
-                    android:layout_weight="1" />
+                    android:layout_weight="1"
+                    android:layout_marginRight="2dp" />
 
             </LinearLayout>
 
         </LinearLayout>
     </RelativeLayout>
+
+
 
 </RelativeLayout>

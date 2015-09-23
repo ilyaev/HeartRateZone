@@ -28,6 +28,7 @@ import android.widget.Toast;
 import com.pbartz.heartmonitor.service.BluetoothLeService;
 import com.pbartz.heartmonitor.service.RandomService;
 import com.pbartz.heartmonitor.view.Button;
+import com.pbartz.heartmonitor.view.Transition;
 import com.pbartz.heartmonitor.view.ZoneChart;
 import com.pbartz.heartmonitor.view.ZoneGauge;
 import com.pbartz.heartmonitor.view.ZoneProgress;
@@ -69,6 +70,7 @@ public class ControlActivity extends AppCompatActivity {
     ZoneGauge viewGauge;
     public ZoneProgress viewProgress;
     ZoneChart viewChart;
+    Transition viewTransition;
 
     RelativeLayout layoutOff;
     RelativeLayout layoutOn;
@@ -108,9 +110,11 @@ public class ControlActivity extends AppCompatActivity {
         viewGauge = (ZoneGauge) findViewById(R.id.viewGauge);
         viewProgress = (ZoneProgress) findViewById(R.id.viewProgress);
         viewChart = (ZoneChart) findViewById(R.id.viewChart);
+        viewTransition = (Transition) findViewById(R.id.viewTransition);
 
         viewChart.setParentActivity(this);
         viewGauge.setParentActivity(this);
+        viewProgress.setParentActivity(this);
 
         btnPlay = (android.widget.ImageButton) findViewById(R.id.btnPlay);
         btnSettings = (android.widget.ImageButton) findViewById(R.id.btnSettings);
@@ -141,15 +145,18 @@ public class ControlActivity extends AppCompatActivity {
     }
 
     public void applyState() {
+
         if (state != MODE_CONNECTED) {
 
-            layoutOff.setVisibility(View.VISIBLE);
-            layoutOn.setVisibility(View.INVISIBLE);
+            viewTransition.setTargetLayout(layoutOff);
+            viewTransition.setSourceLayout(layoutOn);
+            viewTransition.startTransition();
 
         } else {
 
-            layoutOff.setVisibility(View.INVISIBLE);
-            layoutOn.setVisibility(View.VISIBLE);
+            viewTransition.setTargetLayout(layoutOn);
+            viewTransition.setSourceLayout(layoutOff);
+            viewTransition.startTransition();
 
         }
 

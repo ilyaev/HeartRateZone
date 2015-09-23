@@ -15,6 +15,7 @@ import android.view.animation.AccelerateInterpolator;
 import android.view.animation.BounceInterpolator;
 import android.view.animation.DecelerateInterpolator;
 
+import com.pbartz.heartmonitor.ControlActivity;
 import com.pbartz.heartmonitor.R;
 import com.pbartz.heartmonitor.zone.Config;
 
@@ -32,6 +33,7 @@ public class ZoneProgress extends View {
     float zoneHeight;
     int hrValue = 0;
     int hrCurrent;
+    private ControlActivity parentActivity;
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
@@ -94,12 +96,6 @@ public class ZoneProgress extends View {
     public void setHrCurrent(int hrCurrent) {
         this.hrCurrent = hrCurrent;
 
-//        if (hrCurrent > getHeight() / 2) {
-//            defPaint.setARGB(125, 255, 0, 0);
-//        } else {
-//            defPaint.setARGB(125, 0, 255, 0);
-//        }
-
         defPaint.set(Config.getPaintByZone(Config.getZoneByHr(hrValue)));
         defPaint.setAlpha(125);
 
@@ -128,11 +124,27 @@ public class ZoneProgress extends View {
 
         float colOneWidth = getColOneWidth();
         float textHeight = zoneHeight / 3f;
+
+        float smTextHeight = textHeight / 2.4f;
+
         textPaint.setTextSize(textHeight);
 
         float bottom = textPaint.getFontMetrics().bottom;
 
+        String labelTop = "22 min | 22%";
+        String labelBottom = "";
+
+
+        long secSumm = 0;
+        for(int i = 0 ; i < 5 ; i++) {
+            secSumm += parentActivity.getDataSet().zoneSecs[i];
+        }
+
         for (int zone = 0 ; zone < 5 ; zone ++) {
+
+            textPaint.setTextSize(textHeight);
+
+            labelBottom = (int)Config.zoneMap.get(zone).hrValueFrom + " - " + (int)Config.zoneMap.get(zone).hrValueTo;
 
             textPaint.setARGB(255, 100, 100, 100);
 
@@ -157,6 +169,31 @@ public class ZoneProgress extends View {
             canvas.drawText(Config.zoneMap.get(zone).label, centerX - textWidth / 2f, centerY + textHeight / 2f - bottom / 2f, textPaint);
 
 
+            textPaint.setTextSize(smTextHeight);
+
+
+            centerY -= zoneHeight / 3.5f;
+
+            long secValue = parentActivity.getDataSet().zoneSecs[zone];
+
+            if (parentActivity.getDataSet().zoneSecs[zone] > 0) {
+                int secs = (int) parentActivity.getDataSet().zoneSecs[zone] / 1000;
+                String secsLabel = "sec";
+                if (secs > 180) {
+                    secs = (int) secs / 60;
+                    secsLabel = "min";
+                }
+                labelTop = "" + secs + " " + secsLabel + " | " + (int)Math.round((((float)secValue / (float)secSumm) * 100)) + "%";
+                textWidth = textPaint.measureText(labelTop);
+                canvas.drawText(labelTop, centerX - textWidth / 2f, centerY + smTextHeight / 2f - bottom / 2f, textPaint);
+
+            }
+
+            textWidth = textPaint.measureText(labelBottom);
+
+            centerY += (zoneHeight / 3.5f) * 2.2f;
+
+            canvas.drawText(labelBottom, centerX - textWidth / 2f, centerY + smTextHeight / 2f - bottom / 2f, textPaint);
 
 
 
@@ -166,6 +203,10 @@ public class ZoneProgress extends View {
 
 
 
+    }
+
+    public void setParentActivity(ControlActivity activity) {
+        parentActivity = activity;
     }
 
     private float getColOneWidth() {
