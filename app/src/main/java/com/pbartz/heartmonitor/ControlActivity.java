@@ -151,12 +151,15 @@ public class ControlActivity extends AppCompatActivity {
             viewTransition.setTargetLayout(layoutOff);
             viewTransition.setSourceLayout(layoutOn);
             viewTransition.startTransition();
+            viewProgress.enterAnimation(0, 1);
 
         } else {
 
             viewTransition.setTargetLayout(layoutOn);
             viewTransition.setSourceLayout(layoutOff);
             viewTransition.startTransition();
+
+            viewProgress.enterAnimation(200, -1);
 
         }
 

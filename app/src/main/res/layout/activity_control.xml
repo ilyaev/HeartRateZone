@@ -30,7 +30,9 @@
             android:layout_height="wrap_content"
             android:id="@+id/viewProgress"
             android:layout_gravity="center_horizontal"
-            android:layout_above="@+id/viewChart" />
+            android:layout_above="@+id/viewChart"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp" />
 
         <com.pbartz.heartmonitor.view.ZoneGauge
             android:layout_width="wrap_content"
@@ -95,7 +97,8 @@
             android:layout_gravity="right"
             android:layout_weight="0.98"
             android:visibility="invisible"
-            android:layout_alignParentEnd="true" />
+            android:layout_alignParentEnd="true"
+            android:translationZ="100dp" />
 
         <LinearLayout
             android:orientation="vertical"
@@ -118,7 +121,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/bottomButtons"
-                android:layout_marginBottom="-10dp">
+                android:layout_marginBottom="-5dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp">
 
                 <ImageButton
                     android:layout_width="0dp"
@@ -128,8 +133,7 @@
                     android:scaleType="fitCenter"
                     android:background="#ff5200"
                     android:layout_gravity="center_vertical"
-                    android:layout_weight="1"
-                    android:layout_marginLeft="2dp" />
+                    android:layout_weight="1" />
 
                 <ImageButton
                     android:layout_width="0dp"
@@ -152,8 +156,7 @@
                     android:id="@+id/btnAudio"
                     android:scaleType="fitCenter"
                     android:layout_gravity="center_vertical"
-                    android:layout_weight="1"
-                    android:layout_marginRight="2dp" />
+                    android:layout_weight="1" />
 
             </LinearLayout>
 

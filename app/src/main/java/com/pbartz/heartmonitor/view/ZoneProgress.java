@@ -1,5 +1,6 @@
 package com.pbartz.heartmonitor.view;
 
+import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -12,6 +13,7 @@ import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
+import android.view.animation.Animation;
 import android.view.animation.BounceInterpolator;
 import android.view.animation.DecelerateInterpolator;
 
@@ -24,6 +26,95 @@ import com.pbartz.heartmonitor.zone.Config;
  */
 public class ZoneProgress extends View {
 
+    public class ZoneRow {
+
+        public float shiftX = 0;
+        public float shiftY = 0;
+        public int zone = 0;
+        public float height = 0;
+        public float width = 0;
+        public float originX = 0;
+        public float originY = 0;
+        public float centerX = 0;
+        public float centerY = 0;
+        public ZoneProgress parentView;
+        public Paint paint;
+
+        public ZoneRow(int zone, float originX, float originY, ZoneProgress parent) {
+
+            this.zone = zone;
+            this.originX = originX;
+            this.originY = originY;
+
+            this.centerX = originX;
+            this.centerY = originY;
+
+            this.parentView = parent;
+
+            shiftX = 0;
+            shiftY = 0;
+
+        }
+
+        public float getCenterX() {
+            return centerX + shiftX;
+        }
+
+        public float getCenterY() {
+            return centerY + shiftY;
+        }
+
+        public void draw(Canvas canvas) {
+
+
+            canvas.drawRect(shiftX, shiftY + (originY - height / 2f + height * 0.05f), shiftX + width, shiftY + (originY + height / 2f - height * 0.05f), Config.getPaintByZone(zone));
+            canvas.drawRect(shiftX + width + height * 0.05f, shiftY + (originY - height / 2f + height * 0.05f), parentView.getWidth(), shiftY + (originY + height / 2f - height * 0.05f), twoPaint);
+
+
+        }
+
+        public ObjectAnimator getAnimatorX(float newX, long duration, long delay) {
+
+            ObjectAnimator hrAnimation = ObjectAnimator.ofFloat(this, "shiftX", shiftY);
+            hrAnimation.setFloatValues(newX);
+            hrAnimation.setDuration(duration);
+            hrAnimation.setStartDelay(delay);
+            hrAnimation.setInterpolator(new DecelerateInterpolator());
+
+            return hrAnimation;
+        }
+
+        public ObjectAnimator getAnimatorY(float newY, long duration, long delay) {
+
+            ObjectAnimator hrAnimation = ObjectAnimator.ofFloat(this, "shiftY", shiftY);
+            hrAnimation.setFloatValues(newY);
+            hrAnimation.setDuration(duration);
+            hrAnimation.setStartDelay(delay);
+            hrAnimation.setInterpolator(new AccelerateInterpolator());
+
+            return hrAnimation;
+        }
+
+        public float getShiftX() {
+            return shiftX;
+        }
+
+        public float getShiftY() {
+            return shiftY;
+        }
+
+        public void setShiftX(float sX) {
+            shiftX = sX;
+            parentView.invalidate();
+        }
+
+        public void setShiftY(float sY) {
+            shiftY = sY;
+            parentView.invalidate();
+        }
+
+    }
+
     Paint defPaint;
     Paint textPaint;
 
@@ -33,6 +124,9 @@ public class ZoneProgress extends View {
     float zoneHeight;
     int hrValue = 0;
     int hrCurrent;
+
+    ZoneRow[] zoneRows = {null, null, null, null, null};
+
     private ControlActivity parentActivity;
 
     @Override
@@ -41,6 +135,16 @@ public class ZoneProgress extends View {
         zoneHeight = h / 5;
 
         textPaint.setTextSize(zoneHeight / 2);
+
+        for(int i = 0 ; i < 5 ; i++) {
+
+            float centerX = this.getColOneWidth() / 2f;
+            float centerY = getHeight() - (i * zoneHeight) - zoneHeight / 2f;
+            ZoneRow row = new ZoneRow(i, centerX, centerY, this);
+            row.width = this.getColOneWidth();
+            row.height = zoneHeight;
+            zoneRows[i] = row;
+        }
     }
 
     public ZoneProgress(Context context) {
@@ -116,6 +220,7 @@ public class ZoneProgress extends View {
         hrAnimation.setDuration(300);
         hrAnimation.start();
         hrAnimation.setInterpolator(new BounceInterpolator());
+
     }
 
     @Override
@@ -148,13 +253,10 @@ public class ZoneProgress extends View {
 
             textPaint.setARGB(255, 100, 100, 100);
 
-            float centerX = colOneWidth / 2f;
-            float centerY = getHeight() - (zone * zoneHeight) - zoneHeight / 2f;
+            zoneRows[zone].draw(canvas);
 
-            canvas.drawRect(0, getHeight() - (zone + 1) * zoneHeight + zoneHeight * 0.05f, colOneWidth, getHeight() - zone * zoneHeight - zoneHeight * 0.05f, Config.getPaintByZone(zone));
-
-            canvas.drawRect(colOneWidth + zoneHeight * 0.05f, getHeight() - (zone + 1) * zoneHeight + zoneHeight * 0.05f, getWidth(), getHeight() - zone * zoneHeight - zoneHeight * 0.05f, twoPaint);
-
+            float centerX = zoneRows[zone].getCenterX();
+            float centerY = zoneRows[zone].getCenterY();
 
             float textWidth = textPaint.measureText(Config.zoneMap.get(zone).label);
 
@@ -170,7 +272,6 @@ public class ZoneProgress extends View {
 
 
             textPaint.setTextSize(smTextHeight);
-
 
             centerY -= zoneHeight / 3.5f;
 
@@ -199,18 +300,40 @@ public class ZoneProgress extends View {
 
         }
 
-       canvas.drawRect(colOneWidth + zoneHeight * 0.05f, ((getHeight() - hrCurrent) > 0 ? getHeight() - hrCurrent : 0), getWidth(), getHeight(), defPaint);
+       canvas.drawRect(colOneWidth + zoneHeight * 0.05f + zoneRows[2].shiftX, ((getHeight() - hrCurrent) > 0 ? getHeight() - hrCurrent : 0), getWidth(), getHeight(), defPaint);
 
 
 
+
+    }
+
+    public void enterAnimation(long pause, int direction) {
+
+        if (zoneRows[0] == null) {
+            return;
+        }
+
+        AnimatorSet animatorSet = new AnimatorSet();
+
+        animatorSet.setStartDelay(pause);
+
+        for(int i = 0 ; i < 5 ; i++) {
+            zoneRows[i].shiftX = direction < 0 ? getColOneWidth() * direction : 0;
+            animatorSet.play(zoneRows[i].getAnimatorX(direction < 0 ? 0 : -getColOneWidth(), 200, (int)(30 * i)));
+        }
+        animatorSet.start();
     }
 
     public void setParentActivity(ControlActivity activity) {
         parentActivity = activity;
     }
 
+    public float getGaugeXOffset() {
+        return zoneRows[2].shiftX;
+    }
+
     private float getColOneWidth() {
-        return getWidth() * 0.2f;
+        return getWidth() * 0.22f;
     }
 
     public float getColTwoWidth() {
@@ -220,7 +343,7 @@ public class ZoneProgress extends View {
     public Point getGaugeCenter() {
         Point res = new Point();
 
-        res.set( (int)((getWidth() - getColOneWidth()) / 2f + getColOneWidth()), (int)(getHeight() / 2f));
+        res.set( (int)(getColOneWidth() + ( getColTwoWidth() / 2f )), (int)(getHeight() / 2f));
 
         return res;
     }

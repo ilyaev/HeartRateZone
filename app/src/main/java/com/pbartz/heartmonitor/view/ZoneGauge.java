@@ -152,6 +152,9 @@ public class ZoneGauge extends View {
 
     private Point pCenter;
 
+    public float shiftX = 0;
+    public float shiftY = 0;
+
     private int hrValue = -10;
 
     private ArrayList<ZoneSegment> zones;
@@ -252,6 +255,22 @@ public class ZoneGauge extends View {
 
     }
 
+    public void setShiftX(float sX) {
+        shiftX = sX;
+    }
+
+    public void setShiftY(float sY) {
+        shiftY = sY;
+    }
+
+    public float getShiftX() {
+        return shiftX;
+    }
+
+    public float getShiftY() {
+        return shiftY;
+    }
+
     public void updateHrValue(int hrValue) {
         this.hrValue = hrValue;
 
@@ -329,7 +348,7 @@ public class ZoneGauge extends View {
             zones.get(i).draw(canvas, glShift + 90);
         }
 
-        canvas.drawCircle(pCenter.x, pCenter.y, mRadius - mRadius / 5f, mCirclePaint);
+        canvas.drawCircle(shiftX + pCenter.x, shiftY + pCenter.y, mRadius - mRadius / 5f, mCirclePaint);
 
         labelHR.draw(canvas);
         labelTitle.draw(canvas);
