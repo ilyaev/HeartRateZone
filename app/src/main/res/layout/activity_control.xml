@@ -50,6 +50,13 @@
         android:visibility="visible"
         android:id="@+id/layoutOff">
 
+        <com.pbartz.heartmonitor.view.StatusView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/statusView"
+            android:layout_gravity="center_horizontal"
+            android:layout_weight="0.98" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -66,7 +73,8 @@
             android:layout_alignParentTop="false"
             android:layout_alignWithParentIfMissing="false"
             android:layout_centerHorizontal="true"
-            android:textSize="30dp" />
+            android:textSize="30dp"
+            android:layout_marginTop="100dp" />
 
         <CheckBox
             android:layout_width="wrap_content"
@@ -123,7 +131,8 @@
                 android:id="@+id/bottomButtons"
                 android:layout_marginBottom="-5dp"
                 android:layout_marginLeft="5dp"
-                android:layout_marginRight="5dp">
+                android:layout_marginRight="5dp"
+                android:layout_marginTop="0dp">
 
                 <ImageButton
                     android:layout_width="0dp"
@@ -133,7 +142,8 @@
                     android:scaleType="fitCenter"
                     android:background="#ff5200"
                     android:layout_gravity="center_vertical"
-                    android:layout_weight="1" />
+                    android:layout_weight="1"
+                    android:layout_marginRight="0dp" />
 
                 <ImageButton
                     android:layout_width="0dp"
@@ -145,8 +155,8 @@
                     android:background="#ff5200"
                     android:src="@drawable/play_white"
                     android:scaleType="fitCenter"
-                    android:layout_marginLeft="10dp"
-                    android:layout_marginRight="10dp" />
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginRight="5dp" />
 
                 <ImageButton
                     android:layout_width="0dp"

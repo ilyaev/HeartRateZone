@@ -40,6 +40,10 @@ public class Chart {
             data = new ArrayList<HrPoint>();
         }
 
+        public void resetTimeStamp() {
+            timeStamp = System.currentTimeMillis();
+        }
+
         public void pushPoint(int hrValue) {
             HrPoint point = new HrPoint(hrValue, Config.getZoneByHr(hrValue));
             data.add(point);

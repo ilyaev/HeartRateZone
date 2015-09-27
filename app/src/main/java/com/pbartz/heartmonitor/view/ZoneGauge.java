@@ -15,6 +15,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AccelerateInterpolator;
 import android.view.animation.BounceInterpolator;
 
 import com.pbartz.heartmonitor.ControlActivity;
@@ -55,6 +56,11 @@ public class ZoneGauge extends View {
             paint.setTextAlign(Paint.Align.LEFT);
 
             recalculateMetrics();
+        }
+
+        public void setPosition(float x, float y) {
+            this.x = x;
+            this.y = y;
         }
 
         public void setSize(float size) {
@@ -128,6 +134,11 @@ public class ZoneGauge extends View {
 
         }
 
+        public void setCenter(float x, float y) {
+            mCenter.x = (int)x;
+            mCenter.y = (int)y;
+        }
+
         public void draw(Canvas canvas, float glShift) {
             if (value > 0) {
                 canvas.drawArc(mRect, glShift + angleFrom + 1, angleTo - angleFrom - 1, true, Config.getPaintByZone(index));
@@ -151,6 +162,7 @@ public class ZoneGauge extends View {
     private int[] mZoneWeight = {10, 20, 30, 40, 50};
 
     private Point pCenter;
+    private Point pOrigin;
 
     public float shiftX = 0;
     public float shiftY = 0;
@@ -210,6 +222,7 @@ public class ZoneGauge extends View {
 
         if (pCenter == null) {
             pCenter = new Point();
+            pOrigin = new Point();
         }
 
         if (parentActivity != null) {
@@ -226,10 +239,12 @@ public class ZoneGauge extends View {
         if (parentActivity != null) {
 
             pCenter.set(parentActivity.viewProgress.getGaugeCenter().x, parentActivity.viewProgress.getGaugeCenter().y);
+            pOrigin.set(pCenter.x, pCenter.y);
 
         } else {
 
             pCenter.set(getWidth() / 2, (int) (mRadius + mRadius / 5f));
+            pOrigin.set(pCenter.x, pCenter.y);
 
         }
 
@@ -360,17 +375,50 @@ public class ZoneGauge extends View {
 
     }
 
+    public void animateTo(int aX, int aY, long duration, long delay) {
+
+        if (pCenter == null) {
+            return;
+        }
+
+        if (pCenter.x != aX) {
+
+            ObjectAnimator hrAnimation = ObjectAnimator.ofFloat(this, "centerX", pCenter.x);
+            hrAnimation.setStartDelay(delay);
+            hrAnimation.setFloatValues(aX);
+            hrAnimation.setDuration(duration);
+            hrAnimation.setInterpolator(new AccelerateInterpolator());
+            hrAnimation.start();
+
+
+        }
+
+        if (pCenter.y != aY) {
+
+            ObjectAnimator hyAnimation = ObjectAnimator.ofFloat(this, "centerY", pCenter.y);
+            hyAnimation.setStartDelay(delay);
+            hyAnimation.setFloatValues(aY);
+            hyAnimation.setDuration(duration);
+            hyAnimation.setInterpolator(new AccelerateInterpolator());
+
+            hyAnimation.start();
+
+        }
+
+    }
+
     public void setCenterX(float cX) {
+        if (pCenter == null) {
+            return;
+        }
+
         pCenter.x = (int)cX;
         updateHrValue(hrValue);
         labelHR.x = pCenter.x;
-        labelHR.y = pCenter.y;
 
         labelTitle.x = pCenter.x;
-        labelTitle.y = pCenter.y - labelHR.size / 2 - labelTitle.size * 0.7f;
 
         labelLevel.x = pCenter.x;
-        labelLevel.y = pCenter.y + labelHR.size / 2 + labelLevel.size * 1.2f;
 
         invalidate();
     }
@@ -380,16 +428,19 @@ public class ZoneGauge extends View {
     }
 
     public void setCenterY(float cY) {
+
+        if (pCenter == null) {
+            return;
+        }
+
         pCenter.y = (int) cY;
         updateHrValue(hrValue);
-        labelHR.x = pCenter.x;
         labelHR.y = pCenter.y;
 
-        labelTitle.x = pCenter.x;
         labelTitle.y = pCenter.y - labelHR.size / 2 - labelTitle.size * 0.7f;
 
-        labelLevel.x = pCenter.x;
         labelLevel.y = pCenter.y + labelHR.size / 2 + labelLevel.size * 1.2f;
+
         invalidate();
     }
 

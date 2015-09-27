@@ -25,6 +25,7 @@ import android.util.Log;
 import com.pbartz.heartmonitor.MainActivity;
 import com.pbartz.heartmonitor.R;
 import com.pbartz.heartmonitor.utils.SampleGattAttributes;
+import com.pbartz.heartmonitor.zone.Chart;
 
 import java.util.List;
 import java.util.Locale;
@@ -56,6 +57,9 @@ public class BluetoothLeService extends Service {
     public static boolean isInited = false;
     public static boolean isStarted = false;
 
+    public static Chart dataSet;
+
+
     public int mId = 2;
 
     public final static String ACTION_GATT_CONNECTED = "pbartz.hrm.ACTION_GATT_CONNECTED";
@@ -65,6 +69,12 @@ public class BluetoothLeService extends Service {
     public final static String EXTRA_DATA = "pbartz.hrm.EXTRA_DATA";
 
     public final static UUID UUID_HEART_RATE_MEASUREMENT = UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        dataSet = new Chart();
+    }
 
     private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
         @Override
@@ -160,6 +170,7 @@ public class BluetoothLeService extends Service {
             intent.putExtra(EXTRA_DATA, String.valueOf(heartRate));
 
             updateNotifier(String.valueOf(heartRate));
+            dataSet.push(heartRate);
 
         } else {
 
@@ -324,6 +335,7 @@ public class BluetoothLeService extends Service {
 
 
         PendingIntent resultPendingIntent = PendingIntent.getActivity(this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
         mBuilder.setContentIntent(resultPendingIntent);
 
 
@@ -476,6 +488,10 @@ public class BluetoothLeService extends Service {
             this.disconnect();
             this.close();
         }
+    }
+
+    public Chart getDataSet() {
+        return dataSet;
     }
 
 

@@ -24,4 +24,8 @@
 
     </declare-styleable>
 
+    <declare-styleable name="StatusView">
+
+    </declare-styleable>
+
 </resources>

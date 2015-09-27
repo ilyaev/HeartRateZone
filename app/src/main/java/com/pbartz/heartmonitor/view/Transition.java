@@ -56,7 +56,7 @@ public class Transition extends View {
 
 
         transitionPaint = new Paint();
-        transitionPaint.setARGB(255, 0, 0, 0);
+        transitionPaint.setARGB(255, 20, 20, 20);
 
         // Update TextPaint and text measurements from attributes
         invalidateTextPaintAndMeasurements();

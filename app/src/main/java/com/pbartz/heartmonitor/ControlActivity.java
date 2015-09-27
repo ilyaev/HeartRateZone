@@ -1,5 +1,6 @@
 package com.pbartz.heartmonitor;
 
+import android.animation.ObjectAnimator;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
@@ -14,13 +15,18 @@ import android.content.pm.PackageManager;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.OvershootInterpolator;
 import android.widget.CheckBox;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -28,6 +34,7 @@ import android.widget.Toast;
 import com.pbartz.heartmonitor.service.BluetoothLeService;
 import com.pbartz.heartmonitor.service.RandomService;
 import com.pbartz.heartmonitor.view.Button;
+import com.pbartz.heartmonitor.view.StatusView;
 import com.pbartz.heartmonitor.view.Transition;
 import com.pbartz.heartmonitor.view.ZoneChart;
 import com.pbartz.heartmonitor.view.ZoneGauge;
@@ -50,6 +57,8 @@ public class ControlActivity extends AppCompatActivity {
 
     private int mAppMode = APPLICATION_MODE_RANDOM;
 
+    public DisplayMetrics displayMetrics;
+
     private BluetoothLeService mBluetoothLeService;
     private BluetoothAdapter mBluetoothAdapter;
 
@@ -62,6 +71,7 @@ public class ControlActivity extends AppCompatActivity {
     public static final int MODE_DISCONNECTED = 0;
     public static final int MODE_CONNECTING = 1;
     public static final int MODE_CONNECTED = 2;
+    public static final int MODE_SERVICE_DISCOVERED = 3;
 
     private Chart.HrDataSet dataSet = null;
 
@@ -71,6 +81,7 @@ public class ControlActivity extends AppCompatActivity {
     public ZoneProgress viewProgress;
     ZoneChart viewChart;
     Transition viewTransition;
+    StatusView statusView;
 
     RelativeLayout layoutOff;
     RelativeLayout layoutOn;
@@ -84,6 +95,8 @@ public class ControlActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        displayMetrics = getResources().getDisplayMetrics();
 
         setContentView(R.layout.activity_control);
 
@@ -111,6 +124,7 @@ public class ControlActivity extends AppCompatActivity {
         viewProgress = (ZoneProgress) findViewById(R.id.viewProgress);
         viewChart = (ZoneChart) findViewById(R.id.viewChart);
         viewTransition = (Transition) findViewById(R.id.viewTransition);
+        statusView = (StatusView) findViewById(R.id.statusView);
 
         viewChart.setParentActivity(this);
         viewGauge.setParentActivity(this);
@@ -127,8 +141,13 @@ public class ControlActivity extends AppCompatActivity {
 
 
         btnPlay.setOnClickListener(onPlayBtnClickListener);
+        btnPlay.setOnTouchListener(onPlayBtnTouchListener);
+
         btnSettings.setOnClickListener(onSettingsBtnClickListener);
+        btnSettings.setOnTouchListener(onSettingsBtnTouchListener);
+
         btnAudio.setOnClickListener(onAudioBtnClickListener);
+        btnAudio.setOnTouchListener(onAudioBtnTouchListener);
 
         cbSaved = (CheckBox) findViewById(R.id.cbSaved);
 
@@ -140,6 +159,10 @@ public class ControlActivity extends AppCompatActivity {
 
         this.state = state;
 
+        if (state == MODE_CONNECTED) {
+            getDataSet().resetTimeStamp();
+        }
+
         applyState();
 
     }
@@ -148,19 +171,42 @@ public class ControlActivity extends AppCompatActivity {
 
         if (state != MODE_CONNECTED) {
 
-            viewTransition.setTargetLayout(layoutOff);
-            viewTransition.setSourceLayout(layoutOn);
-            viewTransition.startTransition();
-            viewProgress.enterAnimation(0, 1);
+            if (layoutOff.getVisibility() == View.INVISIBLE) {
+
+                viewTransition.setTargetLayout(layoutOff);
+                viewTransition.setSourceLayout(layoutOn);
+                viewTransition.startTransition();
+                viewProgress.enterAnimation(0, 1);
+
+                viewGauge.animateTo(viewProgress.getGaugeCenter().x, -200, 200, 50);
+                viewChart.animateShift(viewChart.getWidth(), 0, 200, 20);
+
+                statusView.setHeartShiftX(statusView.getWidth() / 2 * -1);
+                statusView.animateTo(0, 0, 200, 200);
+
+            }
 
         } else {
 
-            viewTransition.setTargetLayout(layoutOn);
-            viewTransition.setSourceLayout(layoutOff);
-            viewTransition.startTransition();
+            if (layoutOn.getVisibility() == View.INVISIBLE) {
 
-            viewProgress.enterAnimation(200, -1);
+                viewTransition.setTargetLayout(layoutOn);
+                viewTransition.setSourceLayout(layoutOff);
+                viewTransition.startTransition();
 
+                viewProgress.enterAnimation(200, -1);
+
+                viewGauge.setCenterY(-200);
+                viewGauge.animateTo(viewProgress.getGaugeCenter().x, viewProgress.getGaugeCenter().y, 200, 200);
+
+                viewChart.setShiftX(viewChart.getWidth());
+                viewChart.animateShift(0, 0, 200, 210);
+
+                statusView.animateTo(statusView.getWidth() / 2 * -1, 0, 200, 0);
+
+            }
+
+            Log.i(TAG, "Gauge IN");
         }
 
         if (state == MODE_DISCONNECTED) {
@@ -173,6 +219,20 @@ public class ControlActivity extends AppCompatActivity {
             labelStatus.setText("Connecting...");
         } else if (state == MODE_DISCONNECTED) {
             labelStatus.setText("Disconnected");
+        }
+
+        if (state == MODE_SERVICE_DISCOVERED) {
+
+            statusView.lightUpHeart(250);
+
+        } else if (state == MODE_CONNECTING) {
+
+            statusView.lightUpHeart(100);
+
+        } else if (state != MODE_CONNECTED) {
+
+            statusView.fadeDownHeart();
+
         }
     }
 
@@ -193,9 +253,138 @@ public class ControlActivity extends AppCompatActivity {
         }
     };
 
+    private View.OnTouchListener onAudioBtnTouchListener = new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+
+            Log.i(TAG, "" + event.getAction());
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+
+                Log.i(TAG, "Play DOWN!");
+                animateAudioBtnWeight(2);
+
+            } else if (event.getAction() == MotionEvent.ACTION_CANCEL || event.getAction() == MotionEvent.ACTION_UP) {
+
+                Log.i(TAG, "Play UPPP!!!");
+                animateAudioBtnWeight(1);
+            }
+
+
+            return false;
+        }
+
+    };
+
+    private View.OnTouchListener onSettingsBtnTouchListener = new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+
+            Log.i(TAG, "" + event.getAction());
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+
+                Log.i(TAG, "Play DOWN!");
+                animateSettingsBtnWeight(2);
+
+            } else if (event.getAction() == MotionEvent.ACTION_CANCEL || event.getAction() == MotionEvent.ACTION_UP) {
+
+                Log.i(TAG, "Play UPPP!!!");
+                animateSettingsBtnWeight(1);
+            }
+
+
+            return false;
+        }
+
+    };
+
+
+
+    private View.OnTouchListener onPlayBtnTouchListener = new View.OnTouchListener() {
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+
+            Log.i(TAG, "" + event.getAction());
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+
+                Log.i(TAG, "Play DOWN!");
+                animatePlayBtnWeight(2);
+
+            } else if (event.getAction() == MotionEvent.ACTION_CANCEL || event.getAction() == MotionEvent.ACTION_UP) {
+
+                Log.i(TAG, "Play UPPP!!!");
+                animatePlayBtnWeight(1);
+            }
+
+
+            return false;
+        }
+
+    };
+
+    private void animatePlayBtnWeight(float weight) {
+        ObjectAnimator hyAnimation = ObjectAnimator.ofFloat(this, "playBtnWeight", this.getPlayBtnWeight());
+        hyAnimation.setFloatValues(weight);
+        hyAnimation.setDuration(200);
+        hyAnimation.setInterpolator(new OvershootInterpolator(3));
+        hyAnimation.start();
+    }
+
+    public void setPlayBtnWeight(float weight) {
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams)btnPlay.getLayoutParams();
+        params.weight = weight;
+        btnPlay.setLayoutParams(params);
+    }
+
+    public float getPlayBtnWeight() {
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams)btnPlay.getLayoutParams();
+        return params.weight;
+    }
+
+    private void animateAudioBtnWeight(float weight) {
+        ObjectAnimator hyAnimation = ObjectAnimator.ofFloat(this, "audioBtnWeight", this.getAudioBtnWeight());
+        hyAnimation.setFloatValues(weight);
+        hyAnimation.setDuration(200);
+        hyAnimation.setInterpolator(new OvershootInterpolator(3));
+        hyAnimation.start();
+    }
+
+    public void setAudioBtnWeight(float weight) {
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams)btnAudio.getLayoutParams();
+        params.weight = weight;
+        btnAudio.setLayoutParams(params);
+    }
+
+    public float getAudioBtnWeight() {
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams)btnAudio.getLayoutParams();
+        return params.weight;
+    }
+
+    private void animateSettingsBtnWeight(float weight) {
+        ObjectAnimator hyAnimation = ObjectAnimator.ofFloat(this, "settingsBtnWeight", this.getSettingsBtnWeight());
+        hyAnimation.setFloatValues(weight);
+        hyAnimation.setDuration(200);
+        hyAnimation.setInterpolator(new OvershootInterpolator(3));
+        hyAnimation.start();
+    }
+
+    public void setSettingsBtnWeight(float weight) {
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams)btnSettings.getLayoutParams();
+        params.weight = weight;
+        btnSettings.setLayoutParams(params);
+    }
+
+    public float getSettingsBtnWeight() {
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams)btnSettings.getLayoutParams();
+        return params.weight;
+    }
+
     private View.OnClickListener onPlayBtnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+
+            if (layoutOn.getVisibility() == View.VISIBLE && layoutOff.getVisibility() == View.VISIBLE) {
+                return;
+            }
 
             if (state != MODE_DISCONNECTED) {
                 setActivityState(MODE_DISCONNECTED);
@@ -266,6 +455,7 @@ public class ControlActivity extends AppCompatActivity {
 
 
         }
+
     }
 
     public Chart.HrDataSet getDataSet() {
@@ -431,7 +621,9 @@ public class ControlActivity extends AppCompatActivity {
 
     private void connectDevice() {
         if (mBluetoothLeService != null) {
-            cbSaved.setVisibility(CheckBox.VISIBLE);
+
+            //cbSaved.setVisibility(CheckBox.VISIBLE);
+
             cbSaved.setChecked(true);
             final boolean result = mBluetoothLeService.connect(mDeviceAddress, this);
             Log.d(TAG, "Connect request result=" + result);
@@ -443,7 +635,8 @@ public class ControlActivity extends AppCompatActivity {
         mDeviceAddress = settings.getString("deviceAddress", null);
 
         if (mDeviceAddress != null) {
-            cbSaved.setVisibility(CheckBox.VISIBLE);
+            //cbSaved.setVisibility(CheckBox.VISIBLE);
+
             cbSaved.setChecked(true);
         }
     }
@@ -507,6 +700,7 @@ public class ControlActivity extends AppCompatActivity {
                 if (mBluetoothLeService != null) {
                     labelStatus.setText("Reading Heart Rate");
                     mBluetoothLeService.turnHRMNotification();
+                    setActivityState(MODE_SERVICE_DISCOVERED);
                 }
 
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
@@ -518,6 +712,7 @@ public class ControlActivity extends AppCompatActivity {
 
                 viewProgress.updateHrValue(Integer.valueOf(intent.getStringExtra(mBluetoothLeService.EXTRA_DATA)));
                 viewGauge.updateHrValue(Integer.valueOf(intent.getStringExtra(mBluetoothLeService.EXTRA_DATA)));
+                viewChart.invalidate();
 
                 //ToDo
             }
@@ -529,6 +724,9 @@ public class ControlActivity extends AppCompatActivity {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             mBluetoothLeService = ((BluetoothLeService.LocalBinder) service).getService();
+
+            dataSet = mBluetoothLeService.dataSet.dataSet;
+
             if (mBluetoothLeService.isRunning) {
 //                switchConnection.setChecked(true);
 //                labelStatus.setText("Reading Heart Rate");
@@ -545,6 +743,10 @@ public class ControlActivity extends AppCompatActivity {
             mBluetoothLeService = null;
         }
     };
+
+    public int dp2px(float dp) {
+        return (int) (dp * displayMetrics.density + 0.5f);
+    }
 
     /* Bt Methoids End */
 
