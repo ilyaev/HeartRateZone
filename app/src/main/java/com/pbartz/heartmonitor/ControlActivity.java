@@ -12,6 +12,8 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -59,12 +61,17 @@ public class ControlActivity extends AppCompatActivity {
 
     public DisplayMetrics displayMetrics;
 
+    public boolean audioMode = true;
+
     private BluetoothLeService mBluetoothLeService;
     private BluetoothAdapter mBluetoothAdapter;
 
     private static final int SCAN_PERIOD = 10000;
     private long mTimestamp = 0;
     public static final String PREFS_NAME = "pbartzHRMPreferencesFile";
+
+    public String btnColorDown =  "#3b4662";// "#B70312";
+    public String btnColorUp = "#ff5200";
 
     /* Bt Fields end */
 
@@ -157,6 +164,7 @@ public class ControlActivity extends AppCompatActivity {
 
     private void setActivityState(int state) {
 
+
         this.state = state;
 
         if (state == MODE_CONNECTED) {
@@ -204,6 +212,7 @@ public class ControlActivity extends AppCompatActivity {
 
                 statusView.animateTo(statusView.getWidth() / 2 * -1, 0, 200, 0);
 
+
             }
 
             Log.i(TAG, "Gauge IN");
@@ -216,9 +225,21 @@ public class ControlActivity extends AppCompatActivity {
         }
 
         if (state == MODE_CONNECTING) {
+
+            animateSettingsBtnMargin(0, 300, 200);
             labelStatus.setText("Connecting...");
+
         } else if (state == MODE_DISCONNECTED) {
             labelStatus.setText("Disconnected");
+
+            animateAudioBtnMargin(-70, 400, 50);
+            animateSettingsBtnMargin(-70, 400, 0);
+
+        } else if (state == MODE_CONNECTED) {
+
+            animateAudioBtnMargin(0, 300, 300);
+            animateSettingsBtnMargin(0, 300, 200);
+
         }
 
         if (state == MODE_SERVICE_DISCOVERED) {
@@ -228,6 +249,7 @@ public class ControlActivity extends AppCompatActivity {
         } else if (state == MODE_CONNECTING) {
 
             statusView.lightUpHeart(100);
+
 
         } else if (state != MODE_CONNECTED) {
 
@@ -240,8 +262,10 @@ public class ControlActivity extends AppCompatActivity {
         @Override
         public void onClick(View v) {
 
-           btnAudio.setImageResource(viewChart.getVisibility() == View.VISIBLE ? R.drawable.audio_on_white : R.drawable.audio_off_white);
-           viewGauge.focusZone(2);
+            audioMode = !audioMode;
+
+           btnAudio.setImageResource(audioMode ? R.drawable.audio_on_white : R.drawable.audio_off_white);
+
         }
     };
 
@@ -262,11 +286,15 @@ public class ControlActivity extends AppCompatActivity {
 
                 Log.i(TAG, "Play DOWN!");
                 animateAudioBtnWeight(2);
+                animateAudioBtnHeight(80);
+                btnAudio.setBackgroundColor(Color.parseColor(btnColorDown));
 
             } else if (event.getAction() == MotionEvent.ACTION_CANCEL || event.getAction() == MotionEvent.ACTION_UP) {
 
                 Log.i(TAG, "Play UPPP!!!");
                 animateAudioBtnWeight(1);
+                animateAudioBtnHeight(50);
+                btnAudio.setBackgroundColor(Color.parseColor(btnColorUp));
             }
 
 
@@ -284,11 +312,15 @@ public class ControlActivity extends AppCompatActivity {
 
                 Log.i(TAG, "Play DOWN!");
                 animateSettingsBtnWeight(2);
+                animateSettingsBtnHeight(80);
+                btnSettings.setBackgroundColor(Color.parseColor(btnColorDown));
 
             } else if (event.getAction() == MotionEvent.ACTION_CANCEL || event.getAction() == MotionEvent.ACTION_UP) {
 
                 Log.i(TAG, "Play UPPP!!!");
                 animateSettingsBtnWeight(1);
+                animateSettingsBtnHeight(50);
+                btnSettings.setBackgroundColor(Color.parseColor(btnColorUp));
             }
 
 
@@ -308,11 +340,15 @@ public class ControlActivity extends AppCompatActivity {
 
                 Log.i(TAG, "Play DOWN!");
                 animatePlayBtnWeight(2);
+                animatePlayBtnHeight(80);
+                btnPlay.setBackgroundColor(Color.parseColor(btnColorDown));
 
             } else if (event.getAction() == MotionEvent.ACTION_CANCEL || event.getAction() == MotionEvent.ACTION_UP) {
 
                 Log.i(TAG, "Play UPPP!!!");
                 animatePlayBtnWeight(1);
+                animatePlayBtnHeight(70);
+                btnPlay.setBackgroundColor(Color.parseColor(btnColorUp));
             }
 
 
@@ -339,6 +375,114 @@ public class ControlActivity extends AppCompatActivity {
         LinearLayout.LayoutParams params = (LinearLayout.LayoutParams)btnPlay.getLayoutParams();
         return params.weight;
     }
+
+    public void setAudioBtnMargin(int margin) {
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams)btnAudio.getLayoutParams();
+        params.bottomMargin = margin;
+        btnAudio.setLayoutParams(params);
+    }
+
+    public int getAudioBtnMargin() {
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams)btnAudio.getLayoutParams();
+        return params.bottomMargin;
+    }
+
+    private void animateAudioBtnMargin(int margin, long duration, long delay) {
+        ObjectAnimator hyAnimation = ObjectAnimator.ofInt(this, "audioBtnMargin", this.getAudioBtnMargin());
+        hyAnimation.setStartDelay(delay);
+        hyAnimation.setIntValues(dp2px(margin));
+        hyAnimation.setDuration(duration);
+        hyAnimation.setInterpolator(new OvershootInterpolator(3));
+        hyAnimation.start();
+    }
+
+
+
+    public void setSettingsBtnMargin(int margin) {
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams)btnSettings.getLayoutParams();
+        params.bottomMargin = margin;
+        Log.i(TAG, "MARGINGL: " + margin);
+        btnSettings.setLayoutParams(params);
+    }
+
+    public int getSettingsBtnMargin() {
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams)btnSettings.getLayoutParams();
+        return params.bottomMargin;
+    }
+
+    private void animateSettingsBtnMargin(int margin, long duration, long delay) {
+        ObjectAnimator hyAnimation = ObjectAnimator.ofInt(this, "settingsBtnMargin", this.getSettingsBtnMargin());
+        hyAnimation.setStartDelay(delay);
+        hyAnimation.setIntValues(dp2px(margin));
+        hyAnimation.setDuration(duration);
+        hyAnimation.setInterpolator(new OvershootInterpolator(3));
+        hyAnimation.start();
+    }
+
+
+    public void setPlayBtnHeight(int height) {
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams)btnPlay.getLayoutParams();
+        params.height = height;
+        btnPlay.setLayoutParams(params);
+    }
+
+    public int getPlayBtnHeight() {
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams)btnPlay.getLayoutParams();
+        return params.height;
+    }
+
+    private void animatePlayBtnHeight(int height) {
+        ObjectAnimator hyAnimation = ObjectAnimator.ofInt(this, "playBtnHeight", this.getPlayBtnHeight());
+        hyAnimation.setIntValues(dp2px(height));
+        hyAnimation.setDuration(200);
+        hyAnimation.setInterpolator(new OvershootInterpolator(3));
+        hyAnimation.start();
+    }
+
+
+
+
+    public void setSettingsBtnHeight(int height) {
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams)btnSettings.getLayoutParams();
+        params.height = height;
+        btnSettings.setLayoutParams(params);
+    }
+
+    public int getSettingsBtnHeight() {
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams)btnSettings.getLayoutParams();
+        return params.height;
+    }
+
+    private void animateSettingsBtnHeight(int height) {
+        ObjectAnimator hyAnimation = ObjectAnimator.ofInt(this, "settingsBtnHeight", this.getSettingsBtnHeight());
+        hyAnimation.setIntValues(dp2px(height));
+        hyAnimation.setDuration(200);
+        hyAnimation.setInterpolator(new OvershootInterpolator(3));
+        hyAnimation.start();
+    }
+
+
+
+
+    public void setAudioBtnHeight(int height) {
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams)btnAudio.getLayoutParams();
+        params.height = height;
+        btnAudio.setLayoutParams(params);
+    }
+
+    public int getAudioBtnHeight() {
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams)btnAudio.getLayoutParams();
+        return params.height;
+    }
+
+    private void animateAudioBtnHeight(int height) {
+        ObjectAnimator hyAnimation = ObjectAnimator.ofInt(this, "audioBtnHeight", this.getAudioBtnHeight());
+        hyAnimation.setIntValues(dp2px(height));
+        hyAnimation.setDuration(200);
+        hyAnimation.setInterpolator(new OvershootInterpolator(3));
+        hyAnimation.start();
+    }
+
 
     private void animateAudioBtnWeight(float weight) {
         ObjectAnimator hyAnimation = ObjectAnimator.ofFloat(this, "audioBtnWeight", this.getAudioBtnWeight());

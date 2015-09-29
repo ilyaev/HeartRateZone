@@ -143,20 +143,39 @@ public class RandomService extends Service {
         return true;
     }
 
-    public boolean connect(final String address, Activity mainActivity) {
+    public boolean connect(final String address, final Activity mainActivity) {
 
-        mConnectionState = STATE_CONNECTED;
+        broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
+        mConnectionState = STATE_CONNECTING;
 
-        broadcastUpdate(ACTION_GATT_CONNECTED);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
 
-        isRunning = true;
+                try {
+                    Thread.sleep(1500);
+                } catch (Exception e) {
 
-        if (!isInited) {
-            startGenerator();
-            isInited = true;
-        }
+                }
 
-        startNotifier(mainActivity.getIntent());
+                if (mConnectionState != STATE_DISCONNECTED) {
+
+                    mConnectionState = STATE_CONNECTED;
+
+                    broadcastUpdate(ACTION_GATT_CONNECTED);
+
+                    isRunning = true;
+
+                    if (!isInited) {
+                        startGenerator();
+                        isInited = true;
+                    }
+
+                    startNotifier(mainActivity.getIntent());
+
+                }
+            }
+        }).start();
 
         return true;
     }
