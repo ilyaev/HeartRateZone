@@ -36,6 +36,7 @@ import android.widget.Toast;
 import com.pbartz.heartmonitor.service.BluetoothLeService;
 import com.pbartz.heartmonitor.service.RandomService;
 import com.pbartz.heartmonitor.view.Button;
+import com.pbartz.heartmonitor.view.SpinnerView;
 import com.pbartz.heartmonitor.view.StatusView;
 import com.pbartz.heartmonitor.view.Transition;
 import com.pbartz.heartmonitor.view.ZoneChart;
@@ -89,6 +90,7 @@ public class ControlActivity extends AppCompatActivity {
     ZoneChart viewChart;
     Transition viewTransition;
     StatusView statusView;
+    SpinnerView viewLoader;
 
     RelativeLayout layoutOff;
     RelativeLayout layoutOn;
@@ -132,6 +134,7 @@ public class ControlActivity extends AppCompatActivity {
         viewChart = (ZoneChart) findViewById(R.id.viewChart);
         viewTransition = (Transition) findViewById(R.id.viewTransition);
         statusView = (StatusView) findViewById(R.id.statusView);
+        viewLoader = (SpinnerView) findViewById(R.id.viewSpinner);
 
         viewChart.setParentActivity(this);
         viewGauge.setParentActivity(this);
@@ -255,6 +258,13 @@ public class ControlActivity extends AppCompatActivity {
 
             statusView.fadeDownHeart();
 
+        }
+
+        //loader
+        if (state == MODE_CONNECTING) {
+            viewLoader.startAnimation();
+        } else {
+            viewLoader.endAnimation();
         }
     }
 

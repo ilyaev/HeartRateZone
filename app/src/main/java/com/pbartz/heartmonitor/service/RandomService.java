@@ -153,7 +153,7 @@ public class RandomService extends Service {
             public void run() {
 
                 try {
-                    Thread.sleep(1500);
+                    Thread.sleep(15000);
                 } catch (Exception e) {
 
                 }

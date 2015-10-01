@@ -28,4 +28,8 @@
 
     </declare-styleable>
 
+    <declare-styleable name="SpinnerView">
+
+    </declare-styleable>
+
 </resources>
