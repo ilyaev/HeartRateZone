@@ -42,6 +42,8 @@ public class SpinnerView extends View {
 
         private float radius;
 
+        private int alpha = 125;
+
         private float radiusShift;
 
         private Paint paint;
@@ -49,6 +51,8 @@ public class SpinnerView extends View {
         private View parentView;
 
         private float pieValue = 360;
+
+        private LinearInterpolator iLiner = new LinearInterpolator();
 
         AnimatorSet aSet = new AnimatorSet();
         AnimatorSet bSet = new AnimatorSet();
@@ -77,28 +81,28 @@ public class SpinnerView extends View {
                 public void onAnimationEnd(Animator animation) {
                     super.onAnimationEnd(animation);
                     if (animationInProgress) {
-                        aSet.play(getRotationAnimator());
                         aSet.start();
                     }
                 }
             });
         }
 
-        public ObjectAnimator getRotationAnimator() {
-            ObjectAnimator animator = ObjectAnimator.ofFloat(this, "rotation", rotation);
-            animator.setFloatValues(360);
-            animator.setDuration(3000);
-            animator.setInterpolator(new LinearInterpolator());
-
-            return animator;
-        }
-
         public void startRotationAnimation(float radiusShift) {
             this.radiusShift = radiusShift;
 
+            ObjectAnimator animator = ObjectAnimator.ofFloat(this, "rotation", 0);
+            animator.setFloatValues(180);
+            animator.setDuration(1500);
+            animator.setInterpolator(iLiner);
+
+            ObjectAnimator animatorB = ObjectAnimator.ofFloat(this, "rotation", 180);
+            animatorB.setFloatValues(360);
+            animatorB.setDuration(1500);
+            animatorB.setInterpolator(iLiner);
+
             aSet.cancel();
 
-            aSet.play(getRotationAnimator());
+            aSet.playSequentially(animator, animatorB);
             aSet.start();
 
             animationInProgress = true;
@@ -110,12 +114,12 @@ public class SpinnerView extends View {
             ObjectAnimator aFirst = ObjectAnimator.ofFloat(this, "pieValue", 360);
             aFirst.setFloatValues(90);
             aFirst.setDuration(1500);
-            aFirst.setInterpolator(new LinearInterpolator());
+            aFirst.setInterpolator(iLiner);
 
             ObjectAnimator aSecond = ObjectAnimator.ofFloat(this, "pieValue", 45);
             aSecond.setFloatValues(360);
             aSecond.setDuration(2500);
-            aSecond.setInterpolator(new LinearInterpolator());
+            aSecond.setInterpolator(iLiner);
 
             bSet.cancel();
             bSet.playSequentially(aFirst, aSecond);
@@ -129,6 +133,8 @@ public class SpinnerView extends View {
         }
 
         public void setRotation(float rotation) {
+
+            Log.i(TAG, "Set ROTATION");
 
             this.rotation = rotation;
 
@@ -208,7 +214,34 @@ public class SpinnerView extends View {
             }
         }
 
+        public void startAlphaAnimation() {
+            ObjectAnimator animatorAlpha = ObjectAnimator.ofInt(this, "alpha", 0, 125);
+            animatorAlpha.setDuration(1000);
+            animatorAlpha.setInterpolator(iLiner);
+            animatorAlpha.start();
+        }
+
+        public int getAlpha() {
+            return alpha;
+        }
+
+        public void setAlpha(int alpha) {
+            this.alpha = alpha;
+            this.paint.setAlpha(alpha);
+            if (parentView != null) {
+                parentView.invalidate();
+            }
+        }
+
+        public void stopAnimation() {
+            animationInProgress = false;
+            aSet.cancel();
+            bSet.cancel();
+            Log.i(TAG, "Stop Animation");
+        }
     }
+
+    public static final String TAG = "SpinnerView";
 
 
     private SpinnerCircle innerCircle;
@@ -271,12 +304,16 @@ public class SpinnerView extends View {
 
         innerCircle.startRotationAnimation(getWidth() * 0.05f);
         outerCircle.startRotationAnimation(getWidth() * 0.08f);
+        outerCircle.startAlphaAnimation();
         outerCircle.startPieAnimation();
     }
 
     public void endAnimation() {
         this.setVisibility(INVISIBLE);
+        innerCircle.stopAnimation();
+        outerCircle.stopAnimation();
         innerCircle.animationInProgress = false;
+        outerCircle.animationInProgress = false;
     }
 
     private void invalidateTextPaintAndMeasurements() {

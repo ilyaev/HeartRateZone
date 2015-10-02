@@ -16,6 +16,7 @@ import android.util.Log;
 import com.pbartz.heartmonitor.MainActivity;
 import com.pbartz.heartmonitor.R;
 import com.pbartz.heartmonitor.zone.Chart;
+import com.pbartz.heartmonitor.zone.Config;
 
 /**
  * Created by yura.ilyaev on 9/11/2015.
@@ -33,6 +34,8 @@ public class RandomService extends Service {
     public static boolean isRunning = false;
     public static boolean isInited = false;
 
+    private boolean isMute = false;
+
     private NotificationCompat.Builder mBuilder = null;
     private NotificationManager mNotificationManager = null;
 
@@ -45,6 +48,11 @@ public class RandomService extends Service {
     public static Chart dataSet;
 
     private int mCurrentValue = 60;
+
+    private int mZone = 0;
+
+    long latency = 3000;
+    long timeStamp = 0;
 
     int mId = 1;
 
@@ -88,7 +96,7 @@ public class RandomService extends Service {
                         dataSet.push(mCurrentValue);
 
                         updateNotifier("" + mCurrentValue);
-                        //playSound();
+                        playSound();
 
 
                     }
@@ -100,10 +108,54 @@ public class RandomService extends Service {
     }
 
     private void playSound() {
-        Log.i(TAG, "Try To Play SOUND");
-        Intent intent = new Intent(this, PlayAudioService.class);
-        intent.putExtra(PlayAudioService.RAW_ID, R.raw.pickup_coin);
-        startService(intent);
+
+
+        int cZone = Config.getZoneByHr(mCurrentValue);
+
+        if (cZone != mZone) {
+
+            if ((System.currentTimeMillis() - timeStamp) > latency) {
+
+                int audio = R.raw.hrzone_1;
+
+                switch (cZone) {
+                    case 1:
+                        audio = R.raw.hrzone_2;
+                        break;
+                    case 2:
+                        audio = R.raw.hrzone_3;
+                        break;
+                    case 3:
+                        audio = R.raw.hrzone_4;
+                        break;
+                    case 4:
+                        audio = R.raw.hrzone_5;
+                        break;
+                    default:
+                        audio = R.raw.hrzone_1;
+
+                }
+
+                if (!isMute) {
+
+                    Intent intent = new Intent(this, PlayAudioService.class);
+                    intent.putExtra(PlayAudioService.RAW_ID, audio);
+                    startService(intent);
+
+                }
+
+                mZone = cZone;
+                timeStamp = System.currentTimeMillis();
+
+            }
+
+        } else {
+
+            timeStamp = System.currentTimeMillis();
+
+        }
+
+
     }
 
     private void broadcastUpdate(final String action, int number) {
@@ -153,7 +205,7 @@ public class RandomService extends Service {
             public void run() {
 
                 try {
-                    Thread.sleep(15000);
+                    Thread.sleep(1000);
                 } catch (Exception e) {
 
                 }
@@ -234,4 +286,7 @@ public class RandomService extends Service {
         return dataSet;
     }
 
+    public void setIsMute(boolean isMute) {
+        this.isMute = isMute;
+    }
 }

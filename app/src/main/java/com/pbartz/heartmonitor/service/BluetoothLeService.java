@@ -47,6 +47,8 @@ public class BluetoothLeService extends Service {
     private NotificationCompat.Builder mBuilder = null;
     private NotificationManager mNotificationManager = null;
 
+    private boolean isMute = false;
+
     private TextToSpeech ts;
 
     private static final int STATE_DISCONNECTED = 0;
@@ -494,6 +496,7 @@ public class BluetoothLeService extends Service {
         return dataSet;
     }
 
-
-
+    public void setIsMute(boolean isMute) {
+        this.isMute = isMute;
+    }
 }

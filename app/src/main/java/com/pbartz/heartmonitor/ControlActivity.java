@@ -1,6 +1,7 @@
 package com.pbartz.heartmonitor;
 
 import android.animation.ObjectAnimator;
+import android.app.DialogFragment;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
@@ -15,7 +16,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.IBinder;
-import android.support.v7.app.AppCompatActivity;
+import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -33,6 +34,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.pbartz.heartmonitor.fragment.SettingsFragment;
 import com.pbartz.heartmonitor.service.BluetoothLeService;
 import com.pbartz.heartmonitor.service.RandomService;
 import com.pbartz.heartmonitor.view.Button;
@@ -45,7 +47,7 @@ import com.pbartz.heartmonitor.view.ZoneProgress;
 import com.pbartz.heartmonitor.zone.Chart;
 import com.pbartz.heartmonitor.zone.Config;
 
-public class ControlActivity extends AppCompatActivity {
+public class ControlActivity extends FragmentActivity implements SettingsFragment.SettingsDialogListener {
 
     /* BT fields start */
 
@@ -57,8 +59,11 @@ public class ControlActivity extends AppCompatActivity {
     private CheckBox cbSaved;
 
     private String mDeviceAddress = null;
+    private String mDeviceName = null;
 
     private int mAppMode = APPLICATION_MODE_RANDOM;
+
+    SettingsFragment settingsFragment;
 
     public DisplayMetrics displayMetrics;
 
@@ -100,6 +105,8 @@ public class ControlActivity extends AppCompatActivity {
     android.widget.ImageButton btnAudio;
 
     TextView labelStatus;
+    private String mSettingsAge;
+    private String mSettingsMaxHr;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,7 +118,9 @@ public class ControlActivity extends AppCompatActivity {
 
         initView();
 
-        Config.init(185);
+        loadPreferences();
+
+        Config.init(Integer.parseInt(mSettingsMaxHr));
 
         if (mAppMode == APPLICATION_MODE_PRODUCTION) {
 
@@ -123,7 +132,7 @@ public class ControlActivity extends AppCompatActivity {
 
         }
 
-        loadPreferences();
+
 
     }
 
@@ -272,10 +281,20 @@ public class ControlActivity extends AppCompatActivity {
         @Override
         public void onClick(View v) {
 
+
             audioMode = !audioMode;
 
            btnAudio.setImageResource(audioMode ? R.drawable.audio_on_white : R.drawable.audio_off_white);
 
+            if (mAppMode == APPLICATION_MODE_RANDOM) {
+
+                mRandomService.setIsMute(!audioMode);
+
+            } else {
+
+                mBluetoothLeService.setIsMute(!audioMode);
+
+            }
         }
     };
 
@@ -283,6 +302,7 @@ public class ControlActivity extends AppCompatActivity {
         @Override
         public void onClick(View v) {
 
+            showSettingsDialog();
 
         }
     };
@@ -411,7 +431,6 @@ public class ControlActivity extends AppCompatActivity {
     public void setSettingsBtnMargin(int margin) {
         LinearLayout.LayoutParams params = (LinearLayout.LayoutParams)btnSettings.getLayoutParams();
         params.bottomMargin = margin;
-        Log.i(TAG, "MARGINGL: " + margin);
         btnSettings.setLayoutParams(params);
     }
 
@@ -558,6 +577,8 @@ public class ControlActivity extends AppCompatActivity {
         if (mAppMode != APPLICATION_MODE_PRODUCTION) {
             if (enable) {
                 mRandomService.connect("RANDOM", this);
+                mDeviceName = "RND";
+                mDeviceAddress = "A:B:C";
             } else {
                 mRandomService.disconnect();
             }
@@ -734,6 +755,7 @@ public class ControlActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        viewLoader.endAnimation();
 
         if (mAppMode == APPLICATION_MODE_PRODUCTION) {
             unregisterReceiver(mGattUpdateReceiver);
@@ -787,12 +809,31 @@ public class ControlActivity extends AppCompatActivity {
     private void loadPreferences() {
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
         mDeviceAddress = settings.getString("deviceAddress", null);
+        
+        mSettingsAge = settings.getString("settingsAge", "30");
+        mSettingsMaxHr = settings.getString("settingsMaxHr", "190");
 
         if (mDeviceAddress != null) {
             //cbSaved.setVisibility(CheckBox.VISIBLE);
 
             cbSaved.setChecked(true);
         }
+    }
+
+    private void forgetDevice() {
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putString("deviceAddress", null);
+        editor.putString("deviceName", null);
+        editor.commit();
+        mDeviceAddress = null;
+        mDeviceName = null;
+
+        if (state != MODE_DISCONNECTED) {
+            setActivityState(MODE_DISCONNECTED);
+            scanForHRM(false);
+        }
+
     }
 
     private void saveDevice(BluetoothDevice device) {
@@ -802,6 +843,16 @@ public class ControlActivity extends AppCompatActivity {
 
         editor.putString("deviceAddress", device.getAddress());
         editor.putString("deviceName", device.getName());
+
+        editor.commit();
+    }
+
+    private void saveSettings(String age, String maxHr) {
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        SharedPreferences.Editor editor = settings.edit();
+
+        editor.putString("settingsAge", age);
+        editor.putString("settingsMaxHr", maxHr);
 
         editor.commit();
     }
@@ -904,4 +955,41 @@ public class ControlActivity extends AppCompatActivity {
 
     /* Bt Methoids End */
 
+
+    private void showSettingsDialog() {
+
+        settingsFragment = new SettingsFragment();
+        settingsFragment.show(getFragmentManager(), "Settings");
+        settingsFragment.setsAge(mSettingsAge);
+        settingsFragment.setsMaxHr(mSettingsMaxHr);
+        settingsFragment.setsDeviceName(mDeviceAddress);
+        settingsFragment.setsDeviceAddr(mDeviceAddress);
+
+    }
+
+
+    @Override
+    public void onDialogPositiveClick(DialogFragment dialog, int age, int maxHr) {
+        Config.init(maxHr);
+
+        viewProgress.invalidate();
+        viewGauge.invalidate();
+        saveSettings("" + age, "" + maxHr);
+        mSettingsAge = "" + age;
+        mSettingsMaxHr = "" + maxHr;
+    }
+
+    @Override
+    public void onDialogNegativeClick(DialogFragment dialog) {
+        Log.i(TAG, "onCancel Click!");
+    }
+
+    @Override
+    public void onDeviceForgetClick(DialogFragment dialog) {
+        Log.i(TAG, "Forget Click!");
+        forgetDevice();
+        settingsFragment.setsDeviceAddr("");
+        settingsFragment.setsDeviceName("");
+        settingsFragment.setDevice("", "");
+    }
 }

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Age"
+        android:id="@+id/labelAge"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:textSize="25dp" />
+
+    <EditText
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:inputType="number"
+        android:ems="10"
+        android:id="@+id/editAge"
+        android:layout_below="@+id/labelAge"
+        android:layout_alignParentStart="true"
+        android:text="30"
+        android:textSize="35dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Max Heart Rate"
+        android:id="@+id/labelMaxHr"
+        android:layout_below="@+id/editAge"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="false"
+        android:layout_alignParentRight="false"
+        android:layout_alignWithParentIfMissing="false"
+        android:textSize="25dp" />
+
+    <EditText
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:inputType="number"
+        android:ems="10"
+        android:id="@+id/editMaxHr"
+        android:layout_below="@+id/labelMaxHr"
+        android:layout_alignParentStart="true"
+        android:text="190"
+        android:textSize="35dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Heart rate zones are build based on your max heart rate which can be calculated using your age"
+        android:id="@+id/labelDescription"
+        android:layout_below="@+id/editMaxHr"
+        android:layout_alignStart="@+id/editMaxHr"
+        android:layout_alignEnd="@+id/editMaxHr"
+        android:paddingBottom="10dp"
+        android:textSize="20dp" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Forget"
+        android:id="@+id/btnForget"
+        android:layout_below="@+id/labelPaired"
+        android:layout_alignStart="@+id/labelPaired" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Paired with: HRM"
+        android:id="@+id/labelPaired"
+        android:layout_below="@+id/labelDescription"
+        android:layout_alignStart="@+id/labelDescription"
+        android:paddingTop="9dp"
+        android:textSize="20dp" />
+</RelativeLayout>
