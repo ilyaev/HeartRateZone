@@ -292,7 +292,9 @@ public class ZoneGauge extends View {
         labelHR.setText(Integer.toString(hrValue));
         labelLevel.setText(Config.zoneLevel[Config.getZoneByHr(hrValue)]);
 
-        updateGauge(parentActivity.getDataSet().getZoneCounts());
+        if (parentActivity != null && parentActivity.getDataSet() != null) {
+            updateGauge(parentActivity.getDataSet().getZoneCounts());
+        }
         invalidate();
     }
 

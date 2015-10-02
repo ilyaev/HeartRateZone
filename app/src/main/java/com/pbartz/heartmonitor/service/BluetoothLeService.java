@@ -17,15 +17,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
-import android.speech.tts.TextToSpeech;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
+import com.pbartz.heartmonitor.ControlActivity;
 import com.pbartz.heartmonitor.MainActivity;
 import com.pbartz.heartmonitor.R;
 import com.pbartz.heartmonitor.utils.SampleGattAttributes;
 import com.pbartz.heartmonitor.zone.Chart;
+import com.pbartz.heartmonitor.zone.Config;
 
 import java.util.List;
 import java.util.Locale;
@@ -49,7 +50,7 @@ public class BluetoothLeService extends Service {
 
     private boolean isMute = false;
 
-    private TextToSpeech ts;
+//    private TextToSpeech ts;
 
     private static final int STATE_DISCONNECTED = 0;
     private static final int STATE_CONNECTING = 1;
@@ -62,7 +63,7 @@ public class BluetoothLeService extends Service {
     public static Chart dataSet;
 
 
-    public int mId = 2;
+    public int mId = 2123;
 
     public final static String ACTION_GATT_CONNECTED = "pbartz.hrm.ACTION_GATT_CONNECTED";
     public final static String ACTION_GATT_DISCONNECTED = "pbartz.hrm.ACTION_GATT_DISCONNECTED";
@@ -224,16 +225,16 @@ public class BluetoothLeService extends Service {
 
     public boolean initialize() {
 
-        if (ts == null) {
-            ts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
-                @Override
-                public void onInit(int status) {
-                    if (status != TextToSpeech.ERROR) {
-                        ts.setLanguage(Locale.US);
-                    }
-                }
-            });
-        }
+//        if (ts == null) {
+//            ts = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+//                @Override
+//                public void onInit(int status) {
+//                    if (status != TextToSpeech.ERROR) {
+//                        ts.setLanguage(Locale.US);
+//                    }
+//                }
+//            });
+//        }
 
         if (mBluetoothManager == null) {
             mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
@@ -263,7 +264,7 @@ public class BluetoothLeService extends Service {
      *         callback.
      */
 
-    public boolean connect(final String address, Activity mainActivity) {
+    public boolean connect(final String address, ControlActivity mainActivity) {
 
         isRunning = false;
         isStarted = true;
@@ -321,10 +322,10 @@ public class BluetoothLeService extends Service {
 
     public void startNotifier(Intent resultIntent) {
 
-        mBuilder = new NotificationCompat.Builder(this)
-                .setSmallIcon(R.drawable.heartbeat)
-                .setContentTitle("Heart rate zone notifier")
-                .setContentText("Connecting...");
+            mBuilder = new NotificationCompat.Builder(this)
+                    .setSmallIcon(R.drawable.heartbeat)
+                    .setContentTitle("Heart rate zone")
+                    .setContentText("Connecting...");
 
         //TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         //stackBuilder.addParentStack(MainActivity.class);
@@ -335,8 +336,11 @@ public class BluetoothLeService extends Service {
         //PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
 
 
+        Intent resIntent = new Intent(this, ControlActivity.class);
+        resIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-        PendingIntent resultPendingIntent = PendingIntent.getActivity(this, 0, resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        PendingIntent resultPendingIntent = PendingIntent.getActivity(this, 0, resIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         mBuilder.setContentIntent(resultPendingIntent);
 
@@ -361,7 +365,7 @@ public class BluetoothLeService extends Service {
         }
 
         if (mNotificationManager != null) {
-            mBuilder.setContentText("" + hrValue);
+            mBuilder.setContentText("" + hrValue + " bpm @ Zone " + (Config.getZoneByHr(Integer.parseInt(hrValue)) + 1));
             mNotificationManager.notify(mId, mBuilder.build());
             //ts.speak(hrValue, TextToSpeech.QUEUE_FLUSH, null);
         }
@@ -396,6 +400,11 @@ public class BluetoothLeService extends Service {
             mBluetoothGatt.disconnect();
         }
 
+
+        if (mNotificationManager != null) {
+            mNotificationManager.cancelAll();
+        }
+
         stopForeground(true);
 
         stopSelf();
@@ -408,11 +417,11 @@ public class BluetoothLeService extends Service {
         if (mBluetoothGatt == null) {
             return;
         }
-
-        if (ts != null) {
-            ts.shutdown();
-            ts = null;
-        }
+//
+//        if (ts != null) {
+//            ts.shutdown();
+//            ts = null;
+//        }
 
        // mBluetoothGatt.close();
        // mBluetoothGatt = null;

@@ -61,7 +61,7 @@ public class ControlActivity extends FragmentActivity implements SettingsFragmen
     private String mDeviceAddress = null;
     private String mDeviceName = null;
 
-    private int mAppMode = APPLICATION_MODE_RANDOM;
+    private int mAppMode = APPLICATION_MODE_PRODUCTION;
 
     SettingsFragment settingsFragment;
 
@@ -180,7 +180,9 @@ public class ControlActivity extends FragmentActivity implements SettingsFragmen
         this.state = state;
 
         if (state == MODE_CONNECTED) {
-            getDataSet().resetTimeStamp();
+            if (getDataSet() != null) {
+                getDataSet().resetTimeStamp();
+            }
         }
 
         applyState();
@@ -272,7 +274,7 @@ public class ControlActivity extends FragmentActivity implements SettingsFragmen
         //loader
         if (state == MODE_CONNECTING) {
             viewLoader.startAnimation();
-        } else {
+        } else if (state != MODE_SERVICE_DISCOVERED) {
             viewLoader.endAnimation();
         }
     }
@@ -280,23 +282,28 @@ public class ControlActivity extends FragmentActivity implements SettingsFragmen
     private View.OnClickListener onAudioBtnClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-
-
-            audioMode = !audioMode;
-
-           btnAudio.setImageResource(audioMode ? R.drawable.audio_on_white : R.drawable.audio_off_white);
-
-            if (mAppMode == APPLICATION_MODE_RANDOM) {
-
-                mRandomService.setIsMute(!audioMode);
-
-            } else {
-
-                mBluetoothLeService.setIsMute(!audioMode);
-
-            }
+            setAudioMode(!audioMode);
+            saveAudioMode();
         }
     };
+
+    public void setAudioMode(boolean audioMode) {
+        this.audioMode = audioMode;
+
+        btnAudio.setImageResource(audioMode ? R.drawable.audio_on_white : R.drawable.audio_off_white);
+
+        if (mAppMode == APPLICATION_MODE_RANDOM) {
+            if (mRandomService != null) {
+                mRandomService.setIsMute(!audioMode);
+            }
+
+        } else {
+            if (mBluetoothLeService != null) {
+                mBluetoothLeService.setIsMute(!audioMode);
+            }
+
+        }
+    }
 
     private View.OnClickListener onSettingsBtnClickListener = new View.OnClickListener() {
         @Override
@@ -657,6 +664,11 @@ public class ControlActivity extends FragmentActivity implements SettingsFragmen
             return false;
         }
 
+        if (!mBluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, 1);
+        }
+
         return true;
 
     }
@@ -667,6 +679,7 @@ public class ControlActivity extends FragmentActivity implements SettingsFragmen
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             mRandomService = ((RandomService.LocalBinder) service).getService();
+            mRandomService.setIsMute(!audioMode);
 
             dataSet = RandomService.dataSet.dataSet;
 
@@ -812,6 +825,9 @@ public class ControlActivity extends FragmentActivity implements SettingsFragmen
         
         mSettingsAge = settings.getString("settingsAge", "30");
         mSettingsMaxHr = settings.getString("settingsMaxHr", "190");
+        audioMode = settings.getBoolean("settingsAudioMode", true);
+
+        setAudioMode(audioMode);
 
         if (mDeviceAddress != null) {
             //cbSaved.setVisibility(CheckBox.VISIBLE);
@@ -847,6 +863,16 @@ public class ControlActivity extends FragmentActivity implements SettingsFragmen
         editor.commit();
     }
 
+    private void saveAudioMode() {
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        SharedPreferences.Editor editor = settings.edit();
+        //todo
+
+        editor.putBoolean("settingsAudioMode", audioMode);
+
+        editor.commit();
+    }
+
     private void saveSettings(String age, String maxHr) {
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
         SharedPreferences.Editor editor = settings.edit();
@@ -865,7 +891,8 @@ public class ControlActivity extends FragmentActivity implements SettingsFragmen
                 @Override
                 public void run() {
                     Log.i(TAG, "Device Found: " + device.getName() + " / " + device.getAddress());
-                    if (device != null && device.getName() != null && device.getName().equals("HRM")) {
+                    if (device != null && device.getType() == BluetoothDevice.DEVICE_TYPE_LE && device.getName() != null
+                            && (device.getName().toUpperCase().contains("ZEPHYR") ||  device.getName().toUpperCase().contains("WAHOO") || device.getName().toUpperCase().contains("HXM BLU") ||  device.getName().toUpperCase().contains("HRM") || device.getName().toUpperCase().contains("POLAR") )) {
                         mDeviceAddress = device.getAddress();
                         saveDevice(device);
                         mBluetoothAdapter.stopLeScan(mLeScanCallback);
@@ -929,6 +956,7 @@ public class ControlActivity extends FragmentActivity implements SettingsFragmen
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             mBluetoothLeService = ((BluetoothLeService.LocalBinder) service).getService();
+            mBluetoothLeService.setIsMute(!audioMode);
 
             dataSet = mBluetoothLeService.dataSet.dataSet;
 

@@ -376,8 +376,8 @@ public class MainActivity extends Activity {
         if (mBluetoothLeService != null) {
             cbSaved.setVisibility(CheckBox.VISIBLE);
             cbSaved.setChecked(true);
-            final boolean result = mBluetoothLeService.connect(mDeviceAddress, this);
-            Log.d(TAG, "Connect request result=" + result);
+            //final boolean result = mBluetoothLeService.connect(mDeviceAddress, this);
+            //Log.d(TAG, "Connect request result=" + result);
         }
     }
 

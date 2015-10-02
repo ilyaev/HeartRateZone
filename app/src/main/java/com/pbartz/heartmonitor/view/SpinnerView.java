@@ -70,7 +70,6 @@ public class SpinnerView extends View {
                 public void onAnimationEnd(Animator animation) {
                     super.onAnimationEnd(animation);
                     if (animationInProgress) {
-                        Log.i("ATAG", "restart animation");
                         bSet.start();
                     }
                 }
@@ -133,8 +132,6 @@ public class SpinnerView extends View {
         }
 
         public void setRotation(float rotation) {
-
-            Log.i(TAG, "Set ROTATION");
 
             this.rotation = rotation;
 
@@ -237,7 +234,6 @@ public class SpinnerView extends View {
             animationInProgress = false;
             aSet.cancel();
             bSet.cancel();
-            Log.i(TAG, "Stop Animation");
         }
     }
 
