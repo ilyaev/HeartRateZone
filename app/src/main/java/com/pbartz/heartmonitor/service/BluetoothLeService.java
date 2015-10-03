@@ -62,6 +62,13 @@ public class BluetoothLeService extends Service {
 
     public static Chart dataSet;
 
+    private int mCurrentValue = 60;
+
+    private int mZone = 0;
+
+    long latency = 5000;
+    long timeStamp = 0;
+
 
     public int mId = 2123;
 
@@ -170,10 +177,13 @@ public class BluetoothLeService extends Service {
 
             final int heartRate = characteristic.getIntValue(format, 1);
 
+            mCurrentValue = heartRate;
+
             intent.putExtra(EXTRA_DATA, String.valueOf(heartRate));
 
             updateNotifier(String.valueOf(heartRate));
             dataSet.push(heartRate);
+            playSound();
 
         } else {
 
@@ -507,5 +517,55 @@ public class BluetoothLeService extends Service {
 
     public void setIsMute(boolean isMute) {
         this.isMute = isMute;
+    }
+
+    private void playSound() {
+
+        int cZone = Config.getZoneByHr(mCurrentValue);
+
+        if (cZone != mZone) {
+
+            if ((System.currentTimeMillis() - timeStamp) > latency) {
+
+                int audio = R.raw.hrzone_1;
+
+                switch (cZone) {
+                    case 1:
+                        audio = R.raw.hrzone_2;
+                        break;
+                    case 2:
+                        audio = R.raw.hrzone_3;
+                        break;
+                    case 3:
+                        audio = R.raw.hrzone_4;
+                        break;
+                    case 4:
+                        audio = R.raw.hrzone_5;
+                        break;
+                    default:
+                        audio = R.raw.hrzone_1;
+
+                }
+
+                if (!isMute) {
+
+                    Intent intent = new Intent(this, PlayAudioService.class);
+                    intent.putExtra(PlayAudioService.RAW_ID, audio);
+                    startService(intent);
+
+                }
+
+                mZone = cZone;
+                timeStamp = System.currentTimeMillis();
+
+            }
+
+        } else {
+
+            timeStamp = System.currentTimeMillis();
+
+        }
+
+
     }
 }
