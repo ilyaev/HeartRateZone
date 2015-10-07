@@ -892,7 +892,7 @@ public class ControlActivity extends FragmentActivity implements SettingsFragmen
                 public void run() {
                     Log.i(TAG, "Device Found: " + device.getName() + " / " + device.getAddress());
                     if (device != null && device.getType() == BluetoothDevice.DEVICE_TYPE_LE && device.getName() != null
-                            && (device.getName().toUpperCase().contains("ZEPHYR") ||  device.getName().toUpperCase().contains("WAHOO") || device.getName().toUpperCase().contains("HXM BLU") ||  device.getName().toUpperCase().contains("HRM") || device.getName().toUpperCase().contains("POLAR") )) {
+                            && (device.getName().toUpperCase().contains("JABRA PULSE") || device.getName().toUpperCase().contains("ZEPHYR") ||  device.getName().toUpperCase().contains("WAHOO") || device.getName().toUpperCase().contains("HXM BLU") ||  device.getName().toUpperCase().contains("HRM") || device.getName().toUpperCase().contains("POLAR") )) {
                         mDeviceAddress = device.getAddress();
                         saveDevice(device);
                         mBluetoothAdapter.stopLeScan(mLeScanCallback);
