@@ -1,6 +1,8 @@
 package com.pbartz.heartmonitor;
 
+import android.Manifest;
 import android.animation.ObjectAnimator;
+import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -8,6 +10,7 @@ import android.bluetooth.BluetoothManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -15,6 +18,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.os.IBinder;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -47,6 +51,7 @@ import com.pbartz.heartmonitor.view.ZoneProgress;
 import com.pbartz.heartmonitor.zone.Chart;
 import com.pbartz.heartmonitor.zone.Config;
 
+
 public class ControlActivity extends FragmentActivity implements SettingsFragment.SettingsDialogListener {
 
     /* BT fields start */
@@ -62,6 +67,8 @@ public class ControlActivity extends FragmentActivity implements SettingsFragmen
     private String mDeviceName = null;
 
     private int mAppMode = APPLICATION_MODE_PRODUCTION;
+
+    private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
 
     SettingsFragment settingsFragment;
 
@@ -107,10 +114,29 @@ public class ControlActivity extends FragmentActivity implements SettingsFragmen
     TextView labelStatus;
     private String mSettingsAge;
     private String mSettingsMaxHr;
+    private String mSettingsSchema;
+    private String mSettingsRestingHr;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Android M Permission check 
+            if (this.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("This app needs location access");
+                builder.setMessage("Please grant location access so this app can detect beacons.");
+                builder.setPositiveButton(android.R.string.ok, null);
+                builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    public void onDismiss(DialogInterface dialog) {
+                        requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
+                    }
+                });
+                        builder.show();
+            }
+        }
 
         displayMetrics = getResources().getDisplayMetrics();
 
@@ -120,7 +146,7 @@ public class ControlActivity extends FragmentActivity implements SettingsFragmen
 
         loadPreferences();
 
-        Config.init(Integer.parseInt(mSettingsMaxHr));
+        Config.init(Integer.parseInt(mSettingsMaxHr), Integer.parseInt(mSettingsRestingHr), mSettingsSchema);
 
         if (mAppMode == APPLICATION_MODE_PRODUCTION) {
 
@@ -134,6 +160,32 @@ public class ControlActivity extends FragmentActivity implements SettingsFragmen
 
 
 
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_REQUEST_COARSE_LOCATION: {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Log.d(TAG, "coarse location permission granted");
+                } else {
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle("Functionality limited");
+                    builder.setMessage("Since location access has not been granted, this app will not be able to discover beacons when in the background.");
+                    builder.setPositiveButton(android.R.string.ok, null);
+                    builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+
+                        @Override
+                        public void onDismiss(DialogInterface dialog) {
+                        }
+
+                    });
+                    builder.show();
+                }
+                return;
+            }
+        }
     }
 
     private void initView() {
@@ -825,6 +877,8 @@ public class ControlActivity extends FragmentActivity implements SettingsFragmen
         
         mSettingsAge = settings.getString("settingsAge", "30");
         mSettingsMaxHr = settings.getString("settingsMaxHr", "190");
+        mSettingsSchema = settings.getString("settingsSchema", "Strava");
+        mSettingsRestingHr = settings.getString("settingsRestingHr", "60");
         audioMode = settings.getBoolean("settingsAudioMode", true);
 
         setAudioMode(audioMode);
@@ -873,12 +927,14 @@ public class ControlActivity extends FragmentActivity implements SettingsFragmen
         editor.commit();
     }
 
-    private void saveSettings(String age, String maxHr) {
+    private void saveSettings(String age, String maxHr, String restingHr, String schema) {
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
         SharedPreferences.Editor editor = settings.edit();
 
         editor.putString("settingsAge", age);
         editor.putString("settingsMaxHr", maxHr);
+        editor.putString("settingsRestingHr", restingHr);
+        editor.putString("settingsSchema", schema);
 
         editor.commit();
     }
@@ -892,7 +948,7 @@ public class ControlActivity extends FragmentActivity implements SettingsFragmen
                 public void run() {
                     Log.i(TAG, "Device Found: " + device.getName() + " / " + device.getAddress());
                     if (device != null && device.getType() == BluetoothDevice.DEVICE_TYPE_LE && device.getName() != null
-                            && (device.getName().toUpperCase().contains("JABRA PULSE") || device.getName().toUpperCase().contains("ZEPHYR") ||  device.getName().toUpperCase().contains("WAHOO") || device.getName().toUpperCase().contains("HXM BLU") ||  device.getName().toUpperCase().contains("HRM") || device.getName().toUpperCase().contains("POLAR") )) {
+                            && (device.getName().toUpperCase().contains("RHYTHM") || device.getName().toUpperCase().contains("ALPHA") || device.getName().toUpperCase().contains("FUSE") || device.getName().toUpperCase().contains("MIO") || device.getName().toUpperCase().contains("HR SENSOR") || device.getName().toUpperCase().contains("BLUEHR") || device.getName().toUpperCase().contains("TICKR") || device.getName().toUpperCase().contains("JABRA PULSE") || device.getName().toUpperCase().contains("ZEPHYR") ||  device.getName().toUpperCase().contains("WAHOO") || device.getName().toUpperCase().contains("HXM BLU") ||  device.getName().toUpperCase().contains("HRM") || device.getName().toUpperCase().contains("POLAR") )) {
                         mDeviceAddress = device.getAddress();
                         saveDevice(device);
                         mBluetoothAdapter.stopLeScan(mLeScanCallback);
@@ -990,6 +1046,8 @@ public class ControlActivity extends FragmentActivity implements SettingsFragmen
         settingsFragment.show(getFragmentManager(), "Settings");
         settingsFragment.setsAge(mSettingsAge);
         settingsFragment.setsMaxHr(mSettingsMaxHr);
+        settingsFragment.setsSchema(mSettingsSchema);
+        settingsFragment.setsRestingHr(mSettingsRestingHr);
         settingsFragment.setsDeviceName(mDeviceAddress);
         settingsFragment.setsDeviceAddr(mDeviceAddress);
 
@@ -997,14 +1055,16 @@ public class ControlActivity extends FragmentActivity implements SettingsFragmen
 
 
     @Override
-    public void onDialogPositiveClick(DialogFragment dialog, int age, int maxHr) {
-        Config.init(maxHr);
+    public void onDialogPositiveClick(DialogFragment dialog, int age, int maxHr, int restingHr, String schema) {
+        Config.init(maxHr, restingHr, schema);
 
         viewProgress.invalidate();
         viewGauge.invalidate();
-        saveSettings("" + age, "" + maxHr);
+        saveSettings("" + age, "" + maxHr, "" + restingHr, schema);
         mSettingsAge = "" + age;
         mSettingsMaxHr = "" + maxHr;
+        mSettingsSchema = schema;
+        mSettingsRestingHr = "" + restingHr;
     }
 
     @Override

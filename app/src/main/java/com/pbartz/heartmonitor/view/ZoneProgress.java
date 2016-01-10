@@ -177,7 +177,7 @@ public class ZoneProgress extends View {
     }
 
     private void initZoneConfig() {
-        Config.init(185);
+        Config.init(185, 60, "Strava");
         defPaint = new Paint();
         defPaint.setARGB(125, 0, 255, 0);
         defPaint.setStyle(Paint.Style.FILL);

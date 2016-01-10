@@ -13,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.pbartz.heartmonitor.R;
@@ -25,7 +26,7 @@ public class SettingsFragment extends DialogFragment{
     public static final String TAG = "DialogFragment";
 
     public interface SettingsDialogListener {
-        public void onDialogPositiveClick(DialogFragment dialog, int age, int maxHr);
+        public void onDialogPositiveClick(DialogFragment dialog, int age, int maxHr, int restingHr, String schema);
         public void onDialogNegativeClick(DialogFragment dialog);
         public void onDeviceForgetClick(DialogFragment dialog);
     }
@@ -35,13 +36,17 @@ public class SettingsFragment extends DialogFragment{
     AlertDialog dialog;
     EditText editAge;
     EditText editMaxHr;
+    EditText editRestingHr;
+    Spinner spinnerSchema;
 
     Button btnForget;
 
     String sAge = "30";
     String sMaxHr = "190";
+    String sRestingHr = "60";
     String sDeviceName = null;
     String sDeviceAddr = null;
+    String sSchema = "Strava";
 
     TextView labelDevice;
 
@@ -62,6 +67,14 @@ public class SettingsFragment extends DialogFragment{
 
     public void setsAge(String sAge) {
         this.sAge = sAge;
+    }
+
+    public String getsRestingHr() {
+        return sRestingHr;
+    }
+
+    public void setsRestingHr(String sRestingHr) {
+        this.sRestingHr = sRestingHr;
     }
 
     public String getsMaxHr() {
@@ -92,8 +105,33 @@ public class SettingsFragment extends DialogFragment{
         editAge.setText(sAge);
     }
 
+    public void setRestingHr(String sRestingHr) {
+        editRestingHr.setText(sRestingHr);
+    }
+
+    public String getsSchema() {
+        return sSchema;
+    }
+
+    public void setsSchema(String sSchema) {
+        this.sSchema = sSchema;
+    }
+
     public void setMaxHr(String sMaxHr) {
         editMaxHr.setText(sMaxHr);
+    }
+
+    private int getSpinnerIndex(Spinner spinner, String myString)
+    {
+        int index = 0;
+
+        for (int i=0;i<spinner.getCount();i++){
+            if (spinner.getItemAtPosition(i).toString().equalsIgnoreCase(myString)){
+                index = i;
+                break;
+            }
+        }
+        return index;
     }
 
     public void setDevice(String sDeviceName, String sDeviceAddr) {
@@ -123,7 +161,7 @@ public class SettingsFragment extends DialogFragment{
         builder.setPositiveButton("Update", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                mListener.onDialogPositiveClick(SettingsFragment.this, getAge(), getMaxHeartRate());
+                mListener.onDialogPositiveClick(SettingsFragment.this, getAge(), getMaxHeartRate(), getRestingHeartRate(), getSchema());
             }
         });
 
@@ -140,6 +178,24 @@ public class SettingsFragment extends DialogFragment{
 
         return dialog;
 
+    }
+
+    public int getRestingHeartRate() {
+        int restingHr = 0;
+
+        try {
+            restingHr = Integer.parseInt(editRestingHr.getText().toString());
+        } catch (Exception e) {
+            restingHr = 60;
+        }
+
+        if (restingHr < 40) {
+            restingHr = 40;
+        } else if (restingHr > 150) {
+            restingHr = 150;
+        }
+
+        return restingHr;
     }
 
     public int getMaxHeartRate() {
@@ -182,12 +238,23 @@ public class SettingsFragment extends DialogFragment{
         return maxHr;
     }
 
+    public void setSchema(String schema) {
+        spinnerSchema.setSelection(getSpinnerIndex(spinnerSchema, schema));
+    }
+
+    public String getSchema() {
+        return String.valueOf(spinnerSchema.getSelectedItem());
+    }
+
     @Override
     public void onStart() {
         super.onStart();
 
         editAge = (EditText) dialog.findViewById(R.id.editAge);
         editMaxHr = (EditText) dialog.findViewById(R.id.editMaxHr);
+        editRestingHr = (EditText) dialog.findViewById(R.id.editRestingHr);
+
+        spinnerSchema = (Spinner) dialog.findViewById(R.id.spinnerSchema);
 
         labelDevice = (TextView) dialog.findViewById(R.id.labelPaired);
 
@@ -195,7 +262,9 @@ public class SettingsFragment extends DialogFragment{
 
         setAge(sAge);
         setMaxHr(sMaxHr);
+        setRestingHr(sRestingHr);
         setDevice(sDeviceName, sDeviceAddr);
+        setSchema(sSchema);
 
         btnForget.setOnClickListener(new View.OnClickListener() {
             @Override

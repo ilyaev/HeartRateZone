@@ -14,6 +14,12 @@ public class Item extends Object{
 
     public String label;
 
+    public Item(float hrFrom, float hrTo, String label) {
+        this.hrValueTo = hrTo;
+        this.hrValueFrom = hrFrom;
+        this.label = label;
+    }
+
     public Item(float hrFrom, float hrTo, float hrMax, String label) {
         this.hrFrom = hrFrom;
         this.hrTo = hrTo;

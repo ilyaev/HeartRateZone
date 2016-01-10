@@ -22,13 +22,13 @@
         android:layout_below="@+id/labelAge"
         android:layout_alignParentStart="true"
         android:text="30"
-        android:textSize="35dp" />
+        android:textSize="25dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Max Heart Rate"
+        android:text="Max HR"
         android:id="@+id/labelMaxHr"
         android:layout_below="@+id/editAge"
         android:layout_alignParentStart="true"
@@ -38,27 +38,17 @@
         android:textSize="25dp" />
 
     <EditText
-        android:layout_width="fill_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:inputType="number"
         android:ems="10"
         android:id="@+id/editMaxHr"
-        android:layout_below="@+id/labelMaxHr"
-        android:layout_alignParentStart="true"
+        android:layout_alignParentStart="false"
         android:text="190"
-        android:textSize="35dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Heart rate zones are build based on your max heart rate which can be calculated using your age"
-        android:id="@+id/labelDescription"
-        android:layout_below="@+id/editMaxHr"
-        android:layout_alignStart="@+id/editMaxHr"
-        android:layout_alignEnd="@+id/editMaxHr"
-        android:paddingBottom="10dp"
-        android:textSize="20dp" />
+        android:textSize="25dp"
+        android:layout_toStartOf="@+id/textView2"
+        android:layout_alignBottom="@+id/editRestingHr"
+        android:layout_below="@+id/labelMaxHr" />
 
     <Button
         android:layout_width="wrap_content"
@@ -66,7 +56,7 @@
         android:text="Forget"
         android:id="@+id/btnForget"
         android:layout_below="@+id/labelPaired"
-        android:layout_alignStart="@+id/labelPaired" />
+        android:layout_alignParentStart="true" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -74,8 +64,52 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Paired with: HRM"
         android:id="@+id/labelPaired"
-        android:layout_below="@+id/labelDescription"
-        android:layout_alignStart="@+id/labelDescription"
         android:paddingTop="9dp"
-        android:textSize="20dp" />
+        android:textSize="20dp"
+        android:layout_below="@+id/spinnerSchema"
+        android:layout_alignParentStart="true" />
+
+    <Spinner
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/spinnerSchema"
+        android:entries="@array/schema_array"
+        android:spinnerMode="dialog"
+        android:layout_below="@+id/textView"
+        android:layout_alignParentStart="false" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Zones Schema"
+        android:id="@+id/textView"
+        android:textSize="25dp"
+        android:layout_below="@+id/editMaxHr"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Resting HR"
+        android:id="@+id/textView2"
+        android:layout_alignWithParentIfMissing="false"
+        android:textSize="25dp"
+        android:layout_below="@+id/editAge"
+        android:layout_alignParentEnd="true" />
+
+    <EditText
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:inputType="number"
+        android:ems="10"
+        android:id="@+id/editRestingHr"
+        android:text="60"
+        android:textSize="25dp"
+        android:layout_below="@+id/textView2"
+        android:layout_alignParentEnd="false"
+        android:layout_toEndOf="@+id/editMaxHr"
+        android:layout_alignParentStart="false" />
+
 </RelativeLayout>

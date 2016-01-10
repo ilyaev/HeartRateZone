@@ -4,4 +4,15 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_control">My HRM</string>
+
+    <string-array name="schema_array">
+        <item>Strava</item>
+        <item>By % of Max HR</item>
+        <item>Karvonen modified</item>
+        <item>Heart Rate Training</item>
+        <item>Joe Friel Running</item>
+        <item>ABCC/BCF guidelines</item>
+        <item>Joe Friel Biking</item>
+    </string-array>
+
 </resources>

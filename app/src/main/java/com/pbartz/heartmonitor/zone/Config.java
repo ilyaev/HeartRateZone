@@ -13,6 +13,8 @@ import java.util.HashMap;
 public class Config {
 
     public static int hrMax;
+    public static int hrResting;
+    public static String schema;
 
     public static ArrayList<Item> zoneMap;
 
@@ -26,15 +28,19 @@ public class Config {
     };
 
     public static final String[] zoneLevel = {
+            "RECOVERY",
             "ENDURANCE",
-            "MODERATE",
-            "TEMPO",
-            "THRESHOLD",
-            "ANAEROBIC"
+            "STAMINA",
+            "ECONOMY",
+            "SPEED"
     };
 
-    public static void init(int hrMax) {
+    public static void init(int hrMax, int hrResting, String schema) {
         Config.hrMax = hrMax;
+        Config.hrResting = hrResting;
+        Config.schema = schema;
+
+        Log.i("TAG", "Settings: " + hrMax + "/" + hrResting + "/" + schema);
 
         if (zoneMap == null) {
             zoneMap = new ArrayList<>(5);
@@ -48,22 +54,154 @@ public class Config {
         zoneColor[3].setColor(Color.argb(255, 251, 0, 23));
         zoneColor[4].setColor(Color.argb(255, 183, 3, 18));
 
-        int[] perMap = {58,77,87,96,110};
 
 
-        for(int i = 0 ; i < 5 ; i++) {
 
-            int leftBorder = 0;
-            int rightBorder = perMap[i];
+        if(schema.toString().equalsIgnoreCase("By % of Max HR")) {
 
-            if (i == 0) {
-                leftBorder = 0;
-            } else {
-                leftBorder = perMap[i - 1];
+            int[] perMap = {60, 70, 80, 90, 110};
+            for (int i = 0; i < 5; i++) {
+
+                int leftBorder = 0;
+                int rightBorder = perMap[i];
+
+                if (i == 0) {
+                    leftBorder = 0;
+                } else {
+                    leftBorder = perMap[i - 1];
+                }
+
+                Item item = new Item(leftBorder, rightBorder, hrMax, "z" + (i + 1));
+                zoneMap.add(i, item);
             }
 
-            Item item = new Item(leftBorder, rightBorder, hrMax, "z" + (i + 1));
-            zoneMap.add(i, item);
+        } else if (schema.toString().equalsIgnoreCase("Karvonen modified")) {
+
+            int hrr = hrMax - hrResting;
+
+            float[] perMap = {0.60f, 0.70f, 0.80f, 0.90f, 1.10f};
+            for (int i = 0; i < 5; i++) {
+
+                float leftBorder = 0;
+                float rightBorder = perMap[i];
+
+                if (i == 0) {
+                    leftBorder = 0;
+                } else {
+                    leftBorder = perMap[i - 1];
+                }
+
+                Item item = new Item(leftBorder, rightBorder, hrr, "z" + (i + 1));
+
+                item.hrValueFrom = leftBorder * hrr + hrResting;
+                item.hrValueTo = rightBorder * hrr + hrResting;
+
+                zoneMap.add(i, item);
+            }
+
+        } else if (schema.toString().equalsIgnoreCase("Heart Rate Training")) {
+
+            int[] perMap = {60, 75, 85, 95, 110};
+            for (int i = 0; i < 5; i++) {
+
+                int leftBorder = 0;
+                int rightBorder = perMap[i];
+
+                if (i == 0) {
+                    leftBorder = 0;
+                } else {
+                    leftBorder = perMap[i - 1];
+                }
+
+                Item item = new Item(leftBorder, rightBorder, hrMax, "z" + (i + 1));
+                zoneMap.add(i, item);
+            }
+
+        } else if (schema.toString().equalsIgnoreCase("Joe Friel Running")) {
+
+            float[] perMap = {0.85f, 0.89f, 0.94f, 0.99f, 1.10f};
+
+            float lthr = (float)(hrMax * 0.85f);
+
+            for (int i = 0; i < 5; i++) {
+
+                float leftBorder = 0;
+                float rightBorder = perMap[i];
+
+                if (i == 0) {
+                    leftBorder = 0;
+                } else {
+                    leftBorder = perMap[i - 1];
+                }
+
+                Item item = new Item(leftBorder, rightBorder, lthr, "z" + (i + 1));
+
+                item.hrValueFrom = leftBorder * lthr;
+                item.hrValueTo = rightBorder * lthr;
+
+                zoneMap.add(i, item);
+            }
+
+        } else if (schema.toString().equalsIgnoreCase("ABCC/BCF guidelines")) {
+
+            int[] perMap = {65, 75, 82, 89, 110};
+
+            for (int i = 0; i < 5; i++) {
+
+                int leftBorder = 0;
+                int rightBorder = perMap[i];
+
+                if (i == 0) {
+                    leftBorder = 0;
+                } else {
+                    leftBorder = perMap[i - 1];
+                }
+
+                Item item = new Item(leftBorder, rightBorder, hrMax, "z" + (i + 1));
+                zoneMap.add(i, item);
+            }
+
+        }  else if (schema.toString().equalsIgnoreCase("Joe Friel Biking")) {
+
+            float[] perMap = {0.81f, 0.89f, 0.93f, 0.99f, 1.10f};
+
+            float lthr = (float)(hrMax * 0.85f);
+
+            for (int i = 0; i < 5; i++) {
+
+                float leftBorder = 0;
+                float rightBorder = perMap[i];
+
+                if (i == 0) {
+                    leftBorder = 0;
+                } else {
+                    leftBorder = perMap[i - 1];
+                }
+
+                Item item = new Item(leftBorder, rightBorder, lthr, "z" + (i + 1));
+
+                item.hrValueFrom = leftBorder * lthr;
+                item.hrValueTo = rightBorder * lthr;
+
+                zoneMap.add(i, item);
+            }
+
+        } else {
+            int[] perMap = {58, 77, 87, 96, 110};
+            for (int i = 0; i < 5; i++) {
+
+                int leftBorder = 0;
+                int rightBorder = perMap[i];
+
+                if (i == 0) {
+                    leftBorder = 0;
+                } else {
+                    leftBorder = perMap[i - 1];
+                }
+
+                Item item = new Item(leftBorder, rightBorder, hrMax, "z" + (i + 1));
+                zoneMap.add(i, item);
+            }
         }
 
     }
