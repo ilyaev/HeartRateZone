@@ -6,7 +6,12 @@ import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothProfile;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -41,6 +46,7 @@ import android.widget.Toast;
 import com.pbartz.heartmonitor.fragment.SettingsFragment;
 import com.pbartz.heartmonitor.service.BluetoothLeService;
 import com.pbartz.heartmonitor.service.RandomService;
+import com.pbartz.heartmonitor.utils.SampleGattAttributes;
 import com.pbartz.heartmonitor.view.Button;
 import com.pbartz.heartmonitor.view.SpinnerView;
 import com.pbartz.heartmonitor.view.StatusView;
@@ -50,6 +56,8 @@ import com.pbartz.heartmonitor.view.ZoneGauge;
 import com.pbartz.heartmonitor.view.ZoneProgress;
 import com.pbartz.heartmonitor.zone.Chart;
 import com.pbartz.heartmonitor.zone.Config;
+
+import java.util.UUID;
 
 
 public class ControlActivity extends FragmentActivity implements SettingsFragment.SettingsDialogListener {
@@ -79,9 +87,11 @@ public class ControlActivity extends FragmentActivity implements SettingsFragmen
     private BluetoothLeService mBluetoothLeService;
     private BluetoothAdapter mBluetoothAdapter;
 
-    private static final int SCAN_PERIOD = 10000;
+    private static final int SCAN_PERIOD = 20000;
     private long mTimestamp = 0;
     public static final String PREFS_NAME = "pbartzHRMPreferencesFile";
+
+    public final static UUID UUID_HEART_RATE_MEASUREMENT = UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);
 
     public String btnColorDown =  "#3b4662";// "#B70312";
     public String btnColorUp = "#ff5200";
@@ -874,6 +884,7 @@ public class ControlActivity extends FragmentActivity implements SettingsFragmen
     private void loadPreferences() {
         SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
         mDeviceAddress = settings.getString("deviceAddress", null);
+        mDeviceName = settings.getString("deviceName", null);
         
         mSettingsAge = settings.getString("settingsAge", "30");
         mSettingsMaxHr = settings.getString("settingsMaxHr", "190");
@@ -947,13 +958,20 @@ public class ControlActivity extends FragmentActivity implements SettingsFragmen
                 @Override
                 public void run() {
                     Log.i(TAG, "Device Found: " + device.getName() + " / " + device.getAddress());
-                    if (device != null && device.getType() == BluetoothDevice.DEVICE_TYPE_LE && device.getName() != null
-                            && (device.getName().toUpperCase().contains("RHYTHM") || device.getName().toUpperCase().contains("ALPHA") || device.getName().toUpperCase().contains("FUSE") || device.getName().toUpperCase().contains("MIO") || device.getName().toUpperCase().contains("HR SENSOR") || device.getName().toUpperCase().contains("BLUEHR") || device.getName().toUpperCase().contains("TICKR") || device.getName().toUpperCase().contains("JABRA PULSE") || device.getName().toUpperCase().contains("ZEPHYR") ||  device.getName().toUpperCase().contains("WAHOO") || device.getName().toUpperCase().contains("HXM BLU") ||  device.getName().toUpperCase().contains("HRM") || device.getName().toUpperCase().contains("POLAR") )) {
-                        mDeviceAddress = device.getAddress();
-                        saveDevice(device);
-                        mBluetoothAdapter.stopLeScan(mLeScanCallback);
-                        connectDevice();
-                    } else {
+
+
+
+                    // async call to check for HRM interface
+                    checkForHrmService(device.getAddress());
+
+
+//                    if (device != null && device.getType() == BluetoothDevice.DEVICE_TYPE_LE && device.getName() != null
+//                            && (device.getName().toUpperCase().contains("RHYTHM") || device.getName().toUpperCase().contains("ALPHA") || device.getName().toUpperCase().contains("FUSE") || device.getName().toUpperCase().contains("MIO") || device.getName().toUpperCase().contains("HR SENSOR") || device.getName().toUpperCase().contains("BLUEHR") || device.getName().toUpperCase().contains("TICKR") || device.getName().toUpperCase().contains("JABRA PULSE") || device.getName().toUpperCase().contains("ZEPHYR") ||  device.getName().toUpperCase().contains("WAHOO") || device.getName().toUpperCase().contains("HXM BLU") ||  device.getName().toUpperCase().contains("HRM") || device.getName().toUpperCase().contains("POLAR") )) {
+//                        mDeviceAddress = device.getAddress();
+//                        saveDevice(device);
+//                        mBluetoothAdapter.stopLeScan(mLeScanCallback);
+//                        connectDevice();
+//                    } else {
 
                         if (isTimeAlready(SCAN_PERIOD)) {
                             mBluetoothAdapter.stopLeScan(mLeScanCallback);
@@ -962,12 +980,70 @@ public class ControlActivity extends FragmentActivity implements SettingsFragmen
                             labelStatus.setText("HRM device not found");
                         }
 
-                    }
+                    //}
                 }
             });
 
         }
     };
+
+    private void checkForHrmService(String address) {
+        Log.i(TAG, "ASYCN CHECK FOR HRM SERVICE");
+
+        final BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
+
+        BluetoothGatt mBluetoothGatt = device.connectGatt(this, false, new BluetoothGattCallback() {
+
+            @Override
+            public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+                super.onConnectionStateChange(gatt, status, newState);
+                Log.i(TAG, "LOCAL BT SERVICE STATE CHANGE: " + newState);
+
+                if (newState == BluetoothProfile.STATE_CONNECTED) {
+                    if (gatt != null) {
+                        Log.i(TAG, "Connected to GATT Server");
+                        Log.i(TAG, "Attempting to start service discovery: " + gatt.discoverServices());
+                    }
+
+                }
+
+            }
+
+            @Override
+            public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+                super.onServicesDiscovered(gatt, status);
+
+                Log.i(TAG, "Asyn gatt discovered!!");
+
+                for (BluetoothGattService gattService : gatt.getServices()) {
+
+                    for(BluetoothGattCharacteristic gattCharacteristic : gattService.getCharacteristics()) {
+                        if (UUID_HEART_RATE_MEASUREMENT.equals(gattCharacteristic.getUuid())) {
+                            Log.i(TAG, "HRM service found!!");
+
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+
+                                    mDeviceAddress = device.getAddress();
+                                    mDeviceName = device.getName();
+                                    saveDevice(device);
+                                    mBluetoothAdapter.stopLeScan(mLeScanCallback);
+                                    connectDevice();
+
+                                }
+                            });
+                        }
+
+                    }
+
+                }
+
+            }
+        });
+
+        mBluetoothGatt.connect();
+    }
 
     private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
         @Override
@@ -1048,7 +1124,7 @@ public class ControlActivity extends FragmentActivity implements SettingsFragmen
         settingsFragment.setsMaxHr(mSettingsMaxHr);
         settingsFragment.setsSchema(mSettingsSchema);
         settingsFragment.setsRestingHr(mSettingsRestingHr);
-        settingsFragment.setsDeviceName(mDeviceAddress);
+        settingsFragment.setsDeviceName(mDeviceName);
         settingsFragment.setsDeviceAddr(mDeviceAddress);
 
     }
